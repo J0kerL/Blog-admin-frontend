@@ -90,7 +90,7 @@
           <el-dropdown @command="handleCommand">
             <div class="user-info">
               <el-avatar size="small" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
-              <span class="username">管理员</span>
+              <span class="username">{{ username || '管理员' }}</span>
               <el-icon><ArrowDown /></el-icon>
             </div>
             <template #dropdown>
@@ -121,6 +121,9 @@ const router = useRouter()
 
 const isCollapse = ref(false)
 
+// 从localStorage获取用户名
+const username = ref(localStorage.getItem('username'))
+
 const activeMenu = computed(() => {
   return route.path
 })
@@ -138,8 +141,42 @@ const handleCommand = (command) => {
       console.log('设置')
       break
     case 'logout':
-      router.push('/login')
+      handleLogout()
       break
+  }
+}
+
+// 引入request和ElMessage
+import request from '../utils/request'
+import { ElMessage } from 'element-plus'
+
+// 处理退出登录
+const handleLogout = async () => {
+  try {
+    // 调用后端退出登录接口
+    const response = await request.post('/user/logout')
+    
+    // 清除本地存储的token和用户信息 - 使用Authorization作为token名称与后端保持一致
+    localStorage.removeItem('Authorization')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('username')
+    localStorage.removeItem('email')
+    
+    // 显示退出成功消息
+    ElMessage.success(response.msg || '退出登录成功')
+    
+    // 跳转到登录页
+    router.push('/login')
+  } catch (error) {
+    console.error('退出登录失败:', error)
+    ElMessage.error(error.message || '退出登录失败')
+    
+    // 即使请求失败，也清除本地存储并跳转到登录页
+    localStorage.removeItem('Authorization')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('username')
+    localStorage.removeItem('email')
+    router.push('/login')
   }
 }
 </script>
