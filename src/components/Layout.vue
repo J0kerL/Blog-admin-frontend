@@ -5,7 +5,7 @@
       <div class="logo-container">
         <div class="logo">
 <!--          <el-icon><img src="../assets/logo.png" alt="logo"></el-icon>-->
-          <span v-show="!isCollapse" class="logo-text">后台管理系统</span>
+          <span v-show="!isCollapse" class="logo-text">Diamond博客后台管理系统</span>
         </div>
       </div>
       
@@ -18,44 +18,31 @@
         active-text-color="#409EFF"
         router
       >
-        <el-menu-item index="/dashboard">
-          <el-icon><Odometer /></el-icon>
-          <template #title>仪表盘</template>
-        </el-menu-item>
-        
-        <el-menu-item index="/users">
-          <el-icon><User /></el-icon>
-          <template #title>用户管理</template>
-        </el-menu-item>
-        
-        <el-sub-menu index="/content">
-          <template #title>
-            <el-icon><Document /></el-icon>
-            <span>内容管理</span>
-          </template>
-          <el-menu-item index="/articles">文章管理</el-menu-item>
-          <el-menu-item index="/categories">分类管理</el-menu-item>
-        </el-sub-menu>
-        
-        <el-menu-item index="/comments">
-          <el-icon><ChatDotRound /></el-icon>
-          <template #title>评论管理</template>
-        </el-menu-item>
-        
-        <el-menu-item index="/system">
-          <el-icon><Tools /></el-icon>
-          <template #title>系统管理</template>
-        </el-menu-item>
-        
-        <el-menu-item index="/logs">
-          <el-icon><Document /></el-icon>
-          <template #title>日志管理</template>
-        </el-menu-item>
-        
-        <el-menu-item index="/settings">
-          <el-icon><Setting /></el-icon>
-          <template #title>系统设置</template>
-        </el-menu-item>
+        <!-- 动态渲染菜单 -->
+        <template v-for="menu in menuList" :key="menu.id">
+          <el-menu-item :index="menu.path" v-if="!menu.children || menu.children.length === 0">
+            <el-icon>
+              <component :is="getIconComponent(menu.icon)" />
+            </el-icon>
+            <template #title>{{ menu.title }}</template>
+          </el-menu-item>
+          
+          <el-sub-menu :index="menu.path" v-else>
+            <template #title>
+              <el-icon>
+                <component :is="getIconComponent(menu.icon)" />
+              </el-icon>
+              <span>{{ menu.title }}</span>
+            </template>
+            <el-menu-item 
+              v-for="child in menu.children" 
+              :key="child.id" 
+              :index="child.path"
+            >
+              {{ child.title }}
+            </el-menu-item>
+          </el-sub-menu>
+        </template>
       </el-menu>
     </el-aside>
     
@@ -113,13 +100,39 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import {
+  Odometer,
+  User,
+  Document,
+  ChatDotRound,
+  Tools,
+  Setting,
+  Expand,
+  Fold,
+  Search,
+  Bell,
+  ArrowDown,
+  UserFilled,
+  Edit,
+  PriceTag,
+  Collection,
+  ChatLineRound,
+  Management,
+  Files,
+  Folder,
+  Star,
+  View,
+  Lock,
+  Unlock
+} from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const isCollapse = ref(false)
+const menuList = ref([])
 
 // 从localStorage获取用户名
 const username = ref(localStorage.getItem('username'))
@@ -127,6 +140,65 @@ const username = ref(localStorage.getItem('username'))
 const activeMenu = computed(() => {
   return route.path
 })
+
+// 图标组件映射
+const iconMap = {
+  // 仪表盘
+  'Odometer': Odometer,
+  // 用户相关
+  'User': User,
+  'UserFilled': UserFilled,
+  // 角色权限相关
+  'Lock': Lock,
+  'Unlock': Unlock,
+  // 文档文章相关
+  'Document': Document,
+  'Edit': Edit,
+  'Files': Files,
+  // 分类标签相关
+  'Collection': Collection,
+  'Folder': Folder,
+  'PriceTag': PriceTag,
+  'Star': Star,
+  // 评论相关
+  'ChatDotRound': ChatDotRound,
+  'ChatLineRound': ChatLineRound,
+  // 系统管理相关
+  'Tools': Tools,
+  'Setting': Setting,
+  'Management': Management,
+  // 其他
+  'View': View
+}
+
+// 获取图标组件
+const getIconComponent = (iconName) => {
+  return iconMap[iconName] || Document
+}
+
+// 获取菜单数据
+const getMenuList = async () => {
+  try {
+    const response = await request.get('/menu/getMenu')
+    menuList.value = response.data || []
+  } catch (error) {
+    console.error('获取菜单失败:', error)
+    ElMessage.error('获取菜单失败')
+    // 如果获取菜单失败，使用默认菜单
+    menuList.value = [
+      {
+        id: 1,
+        title: '仪表盘',
+        name: 'Dashboard',
+        path: '/dashboard',
+        component: 'Dashboard',
+        icon: 'Odometer',
+        sort: 1,
+        isExternal: 0
+      }
+    ]
+  }
+}
 
 const toggleSidebar = () => {
   isCollapse.value = !isCollapse.value
@@ -149,6 +221,11 @@ const handleCommand = (command) => {
 // 引入request和ElMessage
 import request from '../utils/request'
 import { ElMessage } from 'element-plus'
+
+// 组件挂载时获取菜单
+onMounted(() => {
+  getMenuList()
+})
 
 // 处理退出登录
 const handleLogout = async () => {

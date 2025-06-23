@@ -778,7 +778,7 @@ onMounted(() => {
 
 .forgot-password-buttons .form-button {
   width: 100% !important;
-  margin-left: 0px;
+  margin-left: 0;
 }
 
 /* 响应式忘记密码按钮 */

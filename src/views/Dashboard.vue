@@ -3,57 +3,17 @@
     <!-- 统计卡片 -->
     <div class="stats-cards">
       <el-row :gutter="20">
-        <el-col :span="6">
+        <el-col :span="6" v-for="stat in statsData" :key="stat.title">
           <el-card class="stat-card">
             <div class="stat-content">
               <div class="stat-info">
-                <div class="stat-title">文章数量</div>
-                <div class="stat-value">108</div>
+                <div class="stat-title">{{ stat.title }}</div>
+                <div class="stat-value">{{ stat.value }}</div>
               </div>
-              <div class="stat-icon blue">
-                <el-icon><Document /></el-icon>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-content">
-              <div class="stat-info">
-                <div class="stat-title">用户数</div>
-                <div class="stat-value">574</div>
-              </div>
-              <div class="stat-icon green">
-                <el-icon><User /></el-icon>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-content">
-              <div class="stat-info">
-                <div class="stat-title">浏览量</div>
-                <div class="stat-value">1008</div>
-              </div>
-              <div class="stat-icon orange">
-                <el-icon><View /></el-icon>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-content">
-              <div class="stat-info">
-                <div class="stat-title">评论数量</div>
-                <div class="stat-value">42492</div>
-              </div>
-              <div class="stat-icon purple">
-                <el-icon><ChatDotRound /></el-icon>
+              <div class="stat-icon" :class="stat.iconClass">
+                <el-icon>
+                  <component :is="stat.icon" />
+                </el-icon>
               </div>
             </div>
           </el-card>
@@ -150,6 +110,9 @@ import {
   GridComponent
 } from 'echarts/components'
 import VChart from 'vue-echarts'
+import { Document, User, View, ChatDotRound } from '@element-plus/icons-vue'
+import request from '../utils/request'
+import { ElMessage } from 'element-plus'
 
 use([
   CanvasRenderer,
@@ -160,6 +123,49 @@ use([
   LegendComponent,
   GridComponent
 ])
+
+// 统计数据（硬编码，可后续改为API获取）
+const statsData = ref([
+  {
+    title: '文章数量',
+    value: 108,
+    icon: Document,
+    iconClass: 'blue'
+  },
+  {
+    title: '用户数',
+    value: 574,
+    icon: User,
+    iconClass: 'green'
+  },
+  {
+    title: '浏览量',
+    value: 1008,
+    icon: View,
+    iconClass: 'orange'
+  },
+  {
+    title: '评论数量',
+    value: 42492,
+    icon: ChatDotRound,
+    iconClass: 'purple'
+  }
+])
+
+// 获取实时统计数据的函数（示例）
+const fetchStatsData = async () => {
+  try {
+    // 这里可以调用后端API获取实时数据
+    // const response = await request.get('/dashboard/stats')
+    // statsData.value = response.data
+    
+    // 目前使用硬编码数据
+    console.log('获取统计数据成功')
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+    ElMessage.error('获取统计数据失败')
+  }
+}
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -250,6 +256,11 @@ const getContributionLevel = () => {
   const levels = ['level-0', 'level-1', 'level-2', 'level-3']
   return levels[Math.floor(Math.random() * levels.length)]
 }
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchStatsData()
+})
 </script>
 
 <style scoped>
