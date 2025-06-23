@@ -122,22 +122,24 @@
             </el-form-item>
             
             <el-form-item>
-              <el-button
-                type="primary"
-                size="large"
-                class="form-button primary-button"
-                @click="handleForgotPassword"
-                :loading="forgotLoading"
-              >
-                重置密码
-              </el-button>
-              <el-button
-                size="large"
-                class="form-button secondary-button"
-                @click="showLoginForm"
-              >
-                返回登录
-              </el-button>
+              <div class="forgot-password-buttons">
+                <el-button
+                  type="primary"
+                  size="large"
+                  class="form-button primary-button"
+                  @click="handleForgotPassword"
+                  :loading="forgotLoading"
+                >
+                  重置密码
+                </el-button>
+                <el-button
+                  size="large"
+                  class="form-button secondary-button"
+                  @click="showLoginForm"
+                >
+                  返回登录
+                </el-button>
+              </div>
             </el-form-item>
           </el-form>
         </div>
@@ -542,9 +544,9 @@ onMounted(() => {
   width: 100%;
   max-width: 400px;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
 }
 
@@ -553,13 +555,13 @@ onMounted(() => {
   font-weight: 600;
   color: #1a202c;
   margin-bottom: 0.5rem;
-  text-align: center;
+  text-align: left;
 }
 
 .welcome-subtitle {
   color: #606266;
   margin-bottom: 2rem;
-  text-align: center;
+  text-align: left;
   font-size: clamp(0.875rem, 2vw, 1rem);
 }
 
@@ -602,7 +604,7 @@ onMounted(() => {
 @media (max-width: 480px) {
   .login-form-container {
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.98);
+    background: rgba(255, 255, 255, 0.8);
   }
   
   .welcome-title {
@@ -674,7 +676,6 @@ onMounted(() => {
 }
 
 .primary-button {
-  margin-bottom: 12px !important;
   background: #409eff !important;
   color: white !important;
 }
@@ -765,5 +766,25 @@ onMounted(() => {
 
 .forgot-password {
   text-align: right;
+}
+
+/* 忘记密码页面按钮容器 */
+.forgot-password-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.forgot-password-buttons .form-button {
+  width: 100% !important;
+  margin-left: 0px;
+}
+
+/* 响应式忘记密码按钮 */
+@media (max-width: 480px) {
+  .forgot-password-buttons {
+    gap: 10px;
+  }
 }
 </style>
