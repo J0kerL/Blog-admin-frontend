@@ -179,7 +179,7 @@ const getIconComponent = (iconName) => {
 // 获取菜单数据
 const getMenuList = async () => {
   try {
-    const response = await request.get('/menu/getMenu')
+    const response = await getMenuListApi()
     menuList.value = response.data || []
   } catch (error) {
     console.error('获取菜单失败:', error)
@@ -194,6 +194,16 @@ const getMenuList = async () => {
         component: 'Dashboard',
         icon: 'Odometer',
         sort: 1,
+        isExternal: 0
+      },
+      {
+        id: 2,
+        title: '菜单管理',
+        name: 'MenuManage',
+        path: '/menu',
+        component: 'MenuManage',
+        icon: 'Management',
+        sort: 2,
         isExternal: 0
       }
     ]
@@ -221,6 +231,7 @@ const handleCommand = (command) => {
 // 引入request和ElMessage
 import request from '../utils/request'
 import { ElMessage } from 'element-plus'
+import { getMenuList as getMenuListApi } from '../api/menu'
 
 // 组件挂载时获取菜单
 onMounted(() => {

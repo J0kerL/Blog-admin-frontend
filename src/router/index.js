@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
+import MenuManage from '../views/MenuManage.vue'
 import Layout from '../components/Layout.vue'
 
 const routes = [
@@ -18,6 +19,12 @@ const routes = [
         path: '/dashboard',
         name: 'Dashboard',
         component: Dashboard,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/menu',
+        name: 'MenuManage',
+        component: MenuManage,
         meta: { requiresAuth: true }
       }
     ]
