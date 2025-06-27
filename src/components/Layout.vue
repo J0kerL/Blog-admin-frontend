@@ -76,7 +76,13 @@
           
           <el-dropdown @command="handleCommand">
             <div class="user-info">
-              <el-avatar size="small" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+              <el-avatar 
+                size="small" 
+                :src="userAvatar || defaultAvatar"
+                @error="handleAvatarError"
+              >
+                <el-icon><UserFilled /></el-icon>
+              </el-avatar>
               <span class="username">{{ username || '管理员' }}</span>
               <el-icon><ArrowDown /></el-icon>
             </div>
@@ -136,6 +142,8 @@ const menuList = ref([])
 
 // 从localStorage获取用户名
 const username = ref(localStorage.getItem('username'))
+const userAvatar = ref('')
+const defaultAvatar = 'https://diamond-blog.oss-cn-beijing.aliyuncs.com/defaultAvatar.jpg'
 
 const activeMenu = computed(() => {
   return route.path
@@ -205,6 +213,16 @@ const getMenuList = async () => {
         icon: 'Management',
         sort: 2,
         isExternal: 0
+      },
+      {
+        id: 3,
+        title: '评论管理',
+        name: 'CommentManage',
+        path: '/comment',
+        component: 'CommentManage',
+        icon: 'ChatLineRound',
+        sort: 3,
+        isExternal: 0
       }
     ]
   }
@@ -214,13 +232,33 @@ const toggleSidebar = () => {
   isCollapse.value = !isCollapse.value
 }
 
+// 获取用户头像
+const getUserAvatar = async () => {
+  try {
+    const userId = localStorage.getItem('userId')
+    if (userId) {
+      const response = await request.get(`/user/${userId}`)
+      if (response.data && response.data.avatar) {
+        userAvatar.value = response.data.avatar
+      }
+    }
+  } catch (error) {
+    console.error('获取用户头像失败:', error)
+  }
+}
+
+// 头像加载错误处理
+const handleAvatarError = () => {
+  userAvatar.value = defaultAvatar
+}
+
 const handleCommand = (command) => {
   switch (command) {
     case 'profile':
-      console.log('个人中心')
+      router.push('/profile')
       break
     case 'settings':
-      console.log('设置')
+      router.push('/settings')
       break
     case 'logout':
       handleLogout()
@@ -233,9 +271,10 @@ import request from '../utils/request'
 import { ElMessage } from 'element-plus'
 import { getMenuList as getMenuListApi } from '../api/menu'
 
-// 组件挂载时获取菜单
+// 组件挂载时获取菜单和用户头像
 onMounted(() => {
   getMenuList()
+  getUserAvatar()
 })
 
 // 处理退出登录

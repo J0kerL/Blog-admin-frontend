@@ -12,13 +12,12 @@
           <h1 class="welcome-title">欢迎回来</h1>
           <p class="welcome-subtitle">请输入您的账号和密码登录</p>
           
-          <el-form :model="loginForm" :rules="formRules" ref="loginFormRef" class="login-form" @submit.prevent="handleLogin" @keyup.enter="handleLogin">
+          <el-form :model="loginForm" :rules="formRules" ref="loginFormRef" class="login-form" @submit.prevent="handleLogin">
             <el-form-item prop="account">
               <el-input
                 v-model="loginForm.account"
                 placeholder="请输入用户名或邮箱"
                 prefix-icon="User"
-                @keyup.enter="handleLogin"
               />
             </el-form-item>
             
@@ -74,13 +73,12 @@
           <h1 class="welcome-title">重置密码</h1>
           <p class="welcome-subtitle">请输入您的账号信息和新密码</p>
           
-          <el-form :model="forgotForm" :rules="forgotFormRules" ref="forgotFormRef" class="login-form" @submit.prevent="handleForgotPassword" @keyup.enter="handleForgotPassword">
+          <el-form :model="forgotForm" :rules="forgotFormRules" ref="forgotFormRef" class="login-form" @submit.prevent="handleForgotPassword">
             <el-form-item prop="account">
               <el-input
                 v-model="forgotForm.account"
                 placeholder="请输入用户名或邮箱"
                 prefix-icon="User"
-                @keyup.enter="handleForgotPassword"
               />
             </el-form-item>
             
@@ -91,7 +89,6 @@
                 placeholder="请输入新密码"
                 prefix-icon="Lock"
                 show-password
-                @keyup.enter="handleForgotPassword"
               />
             </el-form-item>
             
@@ -102,7 +99,6 @@
                 placeholder="请确认新密码"
                 prefix-icon="Lock"
                 show-password
-                @keyup.enter="handleForgotPassword"
               />
             </el-form-item>
             
@@ -377,6 +373,11 @@ const showLoginForm = () => {
 
 // 登录处理
 const handleLogin = async () => {
+  // 防止重复提交
+  if (loading.value) {
+    return
+  }
+  
   try {
     // 先进行表单验证
     await loginFormRef.value.validate()
@@ -429,6 +430,11 @@ const handleLogin = async () => {
 
 // 忘记密码处理
 const handleForgotPassword = async () => {
+  // 防止重复提交
+  if (forgotLoading.value) {
+    return
+  }
+  
   try {
     // 验证表单
     await forgotFormRef.value.validate()

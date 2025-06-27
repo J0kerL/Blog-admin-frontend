@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
 import MenuManage from '../views/MenuManage.vue'
+import CommentManage from '../views/CommentManage.vue'
+import Profile from '../views/Profile.vue'
+import Settings from '../views/Settings.vue'
 import Layout from '../components/Layout.vue'
 
 const routes = [
@@ -25,6 +28,24 @@ const routes = [
         path: '/menu',
         name: 'MenuManage',
         component: MenuManage,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/comment',
+        name: 'CommentManage',
+        component: CommentManage,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/profile',
+        name: 'Profile',
+        component: Profile,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/settings',
+        name: 'Settings',
+        component: Settings,
         meta: { requiresAuth: true }
       }
     ]
