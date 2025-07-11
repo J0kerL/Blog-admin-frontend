@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getUserListApi(params?: any) {
   return request({
-    url: '/user/page',
+    url: '/sys/user',
     method: 'get',
     params
   })
@@ -14,9 +14,9 @@ export function getUserListApi(params?: any) {
 /**
  * 获取用户详情
  */
-export function getUserDetailApi(account: string) {
+export function getUserDetailApi(id: string) {
   return request({
-    url: `/user/${account}`,
+    url: `/sys/user/${id}`,
     method: 'get'
   })
 }
@@ -26,7 +26,7 @@ export function getUserDetailApi(account: string) {
  */
 export function createUserApi(data: any) {
   return request({
-    url: '/user/add',
+    url: '/sys/user',
     method: 'post',
     data
   })
@@ -37,7 +37,7 @@ export function createUserApi(data: any) {
  */
 export function updateUserApi(data: any) {
   return request({
-    url: `/user/update`,
+    url: `/sys/user`,
     method: 'put',
     data
   })
@@ -46,11 +46,10 @@ export function updateUserApi(data: any) {
 /**
  * 删除用户
  */
-export function deleteUserApi(ids: string) {
+export function deleteUserApi(ids: string[] | number) {
   return request({
-    url: `/user/delete`,
-    method: 'delete',
-    params: { ids }
+    url: `/sys/user/delete/${ids}`,
+    method: 'delete'
   })
 }
 
@@ -59,7 +58,7 @@ export function deleteUserApi(ids: string) {
  */
 export function resetPasswordApi(data: any) {
   return request({
-    url: '/user/resetPassword',
+    url: '/sys/user/reset',
     method: 'put',
     data
   })
@@ -69,7 +68,7 @@ export function resetPasswordApi(data: any) {
 // 获取用户个人信息
 export function getUserProfileApi() {
   return request({
-    url: '/user/current',
+    url: '/sys/user/profile',
     method: 'get'
   })
 }
@@ -77,21 +76,20 @@ export function getUserProfileApi() {
 // 修改用户个人信息
 export function updateUserProfileApi(data: any) {
   return request({
-    url: '/user/update',
+    url: '/sys/user/updProfile',
     method: 'put',
     data: data
   })
 }
 
 // 用户密码重置
-export function updateUserPwdApi(id: number, oldPassword: string, newPassword: string) {
+export function updateUserPwdApi(oldPassword: string, newPassword: string) {
   const data = {
-    id,
     oldPassword,
     newPassword
   }
   return request({
-    url: '/user/changePassword',
+    url: '/sys/user/updatePwd',
     method: 'put',
     data
   })

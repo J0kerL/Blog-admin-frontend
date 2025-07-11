@@ -1,26 +1,18 @@
 import request from '@/utils/request'
 
-// 获取标签列表（分页）
+// 获取标签列表
 export function getTagListApi(params: any) {
   return request({
-    url: '/admin/tag/page',
+    url: '/sys/tag/list',
     method: 'get',
     params
-  })
-}
-
-// 获取所有标签
-export function getAllTagApi() {
-  return request({
-    url: '/admin/tag/list',
-    method: 'get'
   })
 }
 
 // 新增标签
 export function addTagApi(data: any) {
   return request({
-    url: '/admin/tag',
+    url: '/sys/tag',
     method: 'post',
     data
   })
@@ -29,7 +21,7 @@ export function addTagApi(data: any) {
 // 修改标签
 export function updateTagApi(data: any) {
   return request({
-    url: '/admin/tag',
+    url: '/sys/tag',
     method: 'put',
     data
   })
@@ -38,8 +30,7 @@ export function updateTagApi(data: any) {
 // 删除标签
 export function deleteTagApi(ids: any) {
   return request({
-    url: `/admin/tag`,
-    method: 'delete',
-    params: { ids }
+    url: `/sys/tag/delete/${ids}`,
+    method: 'delete'
   })
 }

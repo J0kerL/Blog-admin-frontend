@@ -3,24 +3,22 @@
     <!-- 数据卡片 -->
     <el-row :gutter="20">
       <el-col :span="6" v-for="(item, index) in statistics" :key="item.title">
-        <el-card
-            shadow="hover"
-            :body-style="{ padding: '20px' }"
-            class="data-card"
-            :style="{ animationDelay: `${index * 0.1}s` }"
+        <el-card 
+          shadow="hover" 
+          :body-style="{ padding: '20px' }"
+          class="data-card"
+          :style="{ animationDelay: `${index * 0.1}s` }"
         >
           <div class="card-content">
             <div class="icon-wrapper" :class="item.type">
-              <el-icon>
-                <component :is="item.icon"/>
-              </el-icon>
+              <el-icon><component :is="item.icon" /></el-icon>
             </div>
             <div class="data-wrapper">
               <count-to
-                  :start-val="0"
-                  :end-val="item.value"
-                  :duration="2000"
-                  class="card-value"
+                :start-val="0"
+                :end-val="item.value"
+                :duration="2000"
+                class="card-value"
               />
               <div class="card-title">{{ item.title }}</div>
             </div>
@@ -29,13 +27,24 @@
       </el-col>
     </el-row>
 
+    
+    <el-row :gutter="20" class="chart-row">
+      <el-col :span="24">
+        <el-card shadow="hover" class="chart-card">
+          <template #header>
+            <span>文章贡献图</span>
+          </template>
+          <ContributionGraph :data="contributionData" />
+        </el-card>
+      </el-col>
+    </el-row>
 
     <!-- 图表区域 -->
     <el-row :gutter="20" class="chart-row">
       <el-col :span="16">
         <el-card shadow="hover" class="chart-card">
           <template #header>
-            <span>访问趋势</span>
+              <span>访问趋势</span>
           </template>
           <div ref="lineChartRef" class="chart"></div>
         </el-card>
@@ -52,41 +61,23 @@
       </el-col>
     </el-row>
 
-    <!-- 系统介绍模块 -->
-    <el-row class="system-intro-row">
-      <el-col :span="24">
-        <el-card shadow="hover" class="system-intro-card">
-          <template #header>
-            <div class="intro-header">
-              <span>关于项目</span>
-            </div>
-          </template>
-          <p>Diamond博客管理系统 是一款专注于用户体验和视觉设计的后台管理系统</p>
-          <p>使用了 Vue3、TypeScript、Vite、Element Plus 等前沿技术</p>
-        </el-card>
-      </el-col>
-    </el-row>
-
   </div>
 </template>
 
 <script setup lang="ts">
 import * as echarts from 'echarts'
-import type {EChartsOption} from 'echarts'
-import {
-  CaretTop,
+import type { EChartsOption } from 'echarts'
+import { 
+  CaretTop, 
   CaretBottom,
   Document,
   Collection,
   ChatLineRound,
-  View,
-  InfoFilled,
-  User,
-  TrendCharts
+  View
 } from '@element-plus/icons-vue'
 import CountTo from '@/views/dashboard/components/CountTo.vue'
-
-import {getDashboardDataApi, getCategoryStatsApi} from '@/api/system'
+import ContributionGraph from './components/ContributionGraph.vue'
+import { getDashboardDataApi, getBottomDataApi } from '@/api/system'
 
 const icons = {
   Document: markRaw(Document),
@@ -94,39 +85,37 @@ const icons = {
   ChatLineRound: markRaw(ChatLineRound),
   View: markRaw(View),
   CaretTop: markRaw(CaretTop),
-  CaretBottom: markRaw(CaretBottom),
-  InfoFilled: markRaw(InfoFilled),
-  User: markRaw(User),
-  TrendCharts: markRaw(TrendCharts)
+  CaretBottom: markRaw(CaretBottom)
 }
 
 const statistics = ref([
-  {
-    title: '文章总数',
-    value: 0,
+  { 
+    title: '文章总数', 
+    value: 0, 
     type: 'primary',
     icon: icons.Document
   },
-  {
-    title: '用户总数',
-    value: 0,
+  { 
+    title: '用户总数', 
+    value: 0, 
     type: 'success',
     icon: icons.Collection
   },
-  {
-    title: '评论总数',
-    value: 0,
+  { 
+    title: '留言总数', 
+    value: 0, 
     type: 'warning',
     icon: icons.ChatLineRound
   },
-  {
-    title: '总浏览量',
-    value: 0,
+  { 
+    title: '访问量', 
+    value: 0, 
     type: 'info',
     icon: icons.View
   }
 ])
 
+const contributionData = ref([])
 
 // 图表相关
 const lineChartRef = ref<HTMLElement>()
@@ -135,7 +124,7 @@ const lineChart = shallowRef<echarts.ECharts | null>(null)
 const pieChart = shallowRef<echarts.ECharts | null>(null)
 
 // 折线图配置
-const getLineChartOption = (chartData?: any): EChartsOption => ({
+const getLineChartOption = (): EChartsOption => ({
   tooltip: {
     trigger: 'axis'
   },
@@ -148,7 +137,7 @@ const getLineChartOption = (chartData?: any): EChartsOption => ({
   xAxis: {
     type: 'category',
     boundaryGap: false,
-    data: chartData && chartData.categories ? chartData.categories : ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
   },
   yAxis: {
     type: 'value'
@@ -158,19 +147,31 @@ const getLineChartOption = (chartData?: any): EChartsOption => ({
       name: '访问量',
       type: 'line',
       smooth: true,
-      data: chartData && chartData.data && Array.isArray(chartData.data) && chartData.data.length > 0 ? chartData.data : [0, 0, 0, 0, 0, 0, 0],
+      data: [820, 932, 901, 934, 1290, 1330, 1320],
       areaStyle: {
         opacity: 0.3
       },
       itemStyle: {
         color: '#409EFF'
       }
+    },
+    {
+      name: '浏览量',
+      type: 'line',
+      smooth: true,
+      data: [620, 732, 701, 734, 1090, 1130, 1120],
+      areaStyle: {
+        opacity: 0.3
+      },
+      itemStyle: {
+        color: '#67C23A'
+      }
     }
   ]
 })
 
 // 饼图配置
-const getPieChartOption = (data?: any[]): EChartsOption => ({
+const getPieChartOption = (): EChartsOption => ({
   tooltip: {
     trigger: 'item'
   },
@@ -193,58 +194,37 @@ const getPieChartOption = (data?: any[]): EChartsOption => ({
       position: 'center'
     },
     emphasis: {
-      disabled: true
+      label: {
+        show: true,
+        fontSize: 20,
+        fontWeight: 'bold'
+      }
     },
     labelLine: {
       show: false
     },
-    data: data && Array.isArray(data) && data.length > 0 ? data : [
-      {value: 0, name: '暂无数据'}
-    ]
+    data: [] as any[]
   }]
 })
 
-// 生成随机访问数据
-const generateRandomVisitData = () => {
-  const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-  const visitData = []
-
-  for (let i = 0; i < 7; i++) {
-    visitData.push(Math.floor(Math.random() * 1000) + 200) // 200-1200之间的随机数
-  }
-
-  return {
-    categories: days,
-    data: visitData
-  }
-}
-
 // 初始化图表
 const initCharts = () => {
-  // 初始化折线图
-  if (lineChartRef.value) {
-    lineChart.value = echarts.init(lineChartRef.value)
+  getBottomDataApi().then(res => {
+    if (lineChartRef.value) {
+      lineChart.value = echarts.init(lineChartRef.value)
+      lineChart.value.setOption(getLineChartOption())
+    }
+    
+    if (pieChartRef.value) {
+      pieChart.value = echarts.init(pieChartRef.value)
+        const option = getPieChartOption()
+        if (option.series && Array.isArray(option.series)) {
+          option.series[0].data = res.data
+        }
+        pieChart.value?.setOption(option)
+    }
+  })
 
-    // 使用随机生成的数据
-    const randomData = generateRandomVisitData()
-    lineChart.value.setOption(getLineChartOption(randomData))
-  }
-
-  // 初始化饼图
-  if (pieChartRef.value) {
-    pieChart.value = echarts.init(pieChartRef.value)
-
-    getCategoryStatsApi().then(res => {
-      if (res && res.data && res.data.data && pieChart.value) {
-        pieChart.value.setOption(getPieChartOption(res.data.data))
-      }
-    }).catch(error => {
-      // 如果API失败，使用默认数据
-      if (pieChart.value) {
-        pieChart.value.setOption(getPieChartOption())
-      }
-    })
-  }
 }
 
 // 处理窗口大小变化
@@ -256,11 +236,11 @@ const handleResize = () => {
 
 onMounted(() => {
   getDashboardDataApi().then(res => {
-    statistics.value[0].value = res.data.articleCount || 0
-    statistics.value[1].value = res.data.userCount || 0
-    statistics.value[2].value = res.data.commentCount || 0
-    statistics.value[3].value = res.data.viewCount || 0
-
+    statistics.value[0].value = res.data.articleCount
+    statistics.value[1].value = res.data.userCount
+    statistics.value[2].value = res.data.messageCount
+    statistics.value[3].value = res.data.visitCount
+    contributionData.value = res.data.contributionData
     initCharts()
   })
   window.addEventListener('resize', handleResize)
@@ -374,4 +354,4 @@ onUnmounted(() => {
     color: #909399;
   }
 }
-</style>
+</style> 

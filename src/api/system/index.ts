@@ -1,27 +1,19 @@
 import request from '@/utils/request'
 
 /**
- * 获取仪表盘统计数据
+ * 获取dashboard数据
  */
 export function getDashboardDataApi() {
   return request({
-    url: '/dashboard/stats',
+    url: '/sys/dashboard',
     method: 'get'
   })
 }
 
-// 获取最近七天访问统计 - 根据后端实际API调整
-export function getVisitStatsApi() {
+// 获取文章统计数据
+export function getBottomDataApi() {
   return request({
-    url: '/dashboard/visits',
-    method: 'get'
-  })
-}
-
-// 获取分类统计 - 根据后端实际API调整
-export function getCategoryStatsApi() {
-  return request({
-    url: '/dashboard/categories',
+    url: '/sys/dashboard/bottom',
     method: 'get'
   })
 }

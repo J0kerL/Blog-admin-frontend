@@ -104,17 +104,10 @@ export const usePermissionStore = defineStore("permission", () => {
       mixLeftMenus.value = matchedItem.children;
     }
   }
-  // 重置路由状态
-  function resetRoutes() {
-    routes.value = [];
-    mixLeftMenus.value = [];
-  }
-
   return {
     routes,
     setRoutes,
     generateRoutes,
-    resetRoutes,
     mixLeftMenus,
     setMixLeftMenus,
   };

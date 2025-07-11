@@ -6,7 +6,7 @@ import 'nprogress/nprogress.css'
 import { getToken } from '@/utils/auth'
 NProgress.configure({ showSpinner: false })
 
-const whiteList = ['/login', '/forgot-password'] // 路由白名单
+const whiteList = ['/login'] // 路由白名单
 
 export function setupPermission() {
   router.beforeEach(async (to, from, next) => {
@@ -26,14 +26,11 @@ export function setupPermission() {
         const userStore = useUserStore();
         const permissionStore = usePermissionStore();
         
-        // 判断是否已经获取过用户信息和路由
-        if (!userStore.user.username || permissionStore.routes.length === 0) {
+        // 判断是否已经获取过用户信息
+        if (!userStore.user.nickname) {
           try {
-            // 如果没有用户信息，先获取用户信息
-            if (!userStore.user.username) {
-              await userStore.getUserInfo();
-            }
-            
+            // 获取用户信息
+            await userStore.getUserInfo();
             // 生成可访问路由
             const accessRoutes = await permissionStore.generateRoutes();
             // 添加路由前检查和打印日志
@@ -62,7 +59,7 @@ export function setupPermission() {
             NProgress.done();
           }
         } else {
-          // 已经有用户信息和路由，直接放行
+          // 已经有用户信息，直接放行
           next();
         }
       }

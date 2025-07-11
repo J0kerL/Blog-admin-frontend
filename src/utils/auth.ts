@@ -1,31 +1,16 @@
-const TokenKey = 'Blog-Token'
+import Cookies from 'js-cookie'
 
-// 设置token到localStorage，提高稳定性
+const TokenKey = 'Neat-Admin-Token'
+
+// 设置token到cookie，过期时间1小时
 export function setToken(token: string) {
-  try {
-    localStorage.setItem(TokenKey, token)
-    // 立即验证token是否设置成功
-    const savedToken = localStorage.getItem(TokenKey)
-    return true
-  } catch (error) {
-    return false
-  }
+  return Cookies.set(TokenKey, token, { expires: 1/24 }) // 1/24 天 = 1小时
 }
 
 export function getToken() {
-  try {
-    const token = localStorage.getItem(TokenKey)
-    return token
-  } catch (error) {
-    return null
-  }
+  return Cookies.get(TokenKey)
 }
 
 export function removeToken() {
-  try {
-    localStorage.removeItem(TokenKey)
-    return true
-  } catch (error) {
-    return false
-  }
-}
+  return Cookies.remove(TokenKey)
+} 

@@ -43,8 +43,9 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
       open: false,
       proxy: {
         '/api': {
-          target: 'http://localhost:8080',
+          target: env.VITE_APP_API_URL,
           changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
           configure: (proxy, options) => {
             proxy.on('proxyReq', (proxyReq, req, res) => {
               console.log('代理请求:', {

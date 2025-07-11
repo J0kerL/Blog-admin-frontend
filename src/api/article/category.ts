@@ -1,26 +1,18 @@
 import request from '@/utils/request'
 
-// 获取分类信息（分页）
+// 获取分类信息
 export function getCategoryListApi(params: any) {
   return request({
-    url: '/category/page',
+    url: '/sys/category/list',
     method: 'get',
     params
-  })
-}
-
-// 获取所有分类
-export function getAllCategoryApi() {
-  return request({
-    url: '/category/list',
-    method: 'get'
   })
 }
 
 // 新增分类
 export function addCategoryApi(data: any) {
   return request({
-    url: '/category/add',
+    url: '/sys/category',
     method: 'post',
     data
   })
@@ -29,7 +21,7 @@ export function addCategoryApi(data: any) {
 // 修改分类
 export function updateCategoryApi(data: any) {
   return request({
-    url: '/category/update',
+    url: '/sys/category',
     method: 'put',
     data
   })
@@ -38,8 +30,7 @@ export function updateCategoryApi(data: any) {
 // 删除分类
 export function deleteCategoryApi(ids: any) {
   return request({
-    url: `/category/delete`,
-    method: 'delete',
-    params: { ids }
+    url: `/sys/category/delete/${ids}`,
+    method: 'delete'
   })
 }

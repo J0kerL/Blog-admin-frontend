@@ -11,13 +11,13 @@ export function getFileListApi(params: any) {
 }
 
 // 上传文件
-export function uploadApi(data: any, type: string = 'image') {
+export function uploadApi(data: any, source: string) {
   return request({
     url: '/file/upload',
     method: 'post',
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": "multipart/articles-data" },
     data,
-    params: { type: type }
+    params: { source: source }
   })
 }
 

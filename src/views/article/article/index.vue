@@ -36,9 +36,8 @@
             <el-button type="primary" icon="Plus" @click="handleAdd" v-permission="['sys:article:add']">新增文章</el-button>
             <el-button type="danger" icon="Delete" :disabled="selectedIds.length === 0"
               v-permission="['sys:article:delete']" @click="handleBatchDelete">批量删除</el-button>
-            <!-- 爬取文章功能暂未实现 -->
-            <!-- <el-button type="warning" icon="Setting" v-permission="['sys:article:reptile']"
-              @click="reptileDialog.visible = true">爬取文章</el-button> -->
+            <el-button type="warning" icon="Setting" v-permission="['sys:article:reptile']"
+              @click="reptileDialog.visible = true">爬取文章</el-button>
           </ButtonGroup>
         </div>
       </template>
@@ -67,13 +66,9 @@
         </el-table-column>
         <el-table-column label="发布状态" align="center" prop="status">
           <template #default="scope">
-            <!-- 状态切换功能暂未实现，改为显示状态 -->
-            <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-              {{ scope.row.status === 1 ? '已发布' : '草稿' }}
-            </el-tag>
-            <!-- <el-switch @change="handleChangeStatus(scope.row)"
+            <el-switch @change="handleChangeStatus(scope.row)"
               style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" v-model="scope.row.status"
-              :active-value="1" :inactive-value="0" /> -->
+              :active-value="1" :inactive-value="0" />
           </template>
         </el-table-column>
         <el-table-column label="是否推荐" align="center">
@@ -325,8 +320,8 @@
       </template>
     </el-dialog>
 
-    <!-- 爬取文章对话框 - 暂未实现 -->
-    <!-- <el-dialog title="爬取文章" v-model="reptileDialog.visible" width="800px">
+    <!-- 爬取文章对话框 -->
+    <el-dialog title="爬取文章" v-model="reptileDialog.visible" width="800px">
       <el-form ref="reptileFormRef" :model="reptileForm" :rules="rules" label-width="100px">
         <el-form-item label="爬取地址" prop="url">
           <el-input v-model="reptileForm.url" placeholder="请输入爬取地址" />
@@ -342,7 +337,7 @@
           <el-button type="primary" :loading="submitLoading" @click="submitReptile">确 定</el-button>
         </div>
       </template>
-    </el-dialog> -->
+    </el-dialog>
 
     <!-- 添加视频地址对话框 -->
     <el-dialog center title="添加视频" v-model="dialogVisible" width="30%">
@@ -404,10 +399,9 @@ const dialog = reactive({
   type: 'add'
 })
 
-// 爬取文章对话框 - 暂未实现
-// const reptileDialog = reactive({
-//   visible: false,
-// })
+const reptileDialog = reactive({
+  visible: false,
+})
 
 // 表单数据
 const form = reactive<any>({
@@ -429,10 +423,9 @@ const form = reactive<any>({
   keywords: ''
 })
 
-// 爬取文章表单 - 暂未实现
-// const reptileForm = reactive({
-//   url: ''
-// })
+const reptileForm = reactive({
+  url: ''
+})
 
 const statusOptions = ref<any>([])
 const yesNoOptions = ref<any>([])
@@ -606,16 +599,16 @@ const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map(item => item.id)
 }
 
-// 爬取文章 - 暂未实现
-// const submitReptile = () => {
-//   if (!reptileForm.url) return
-//   reptileArticleApi(reptileForm.url).then((res) => {
-//     ElMessage.success('爬取成功')
-//     getList()
-//     reptileDialog.visible = false
-//     reptileForm.url = ''
-//   })
-// }
+// 爬取文章
+const submitReptile = () => {
+  if (!reptileForm.url) return
+  reptileArticleApi(reptileForm.url).then((res) => {
+    ElMessage.success('爬取成功')
+    getList()
+    reptileDialog.visible = false
+    reptileForm.url = ''
+  })
+}
 
 // 批量删除
 const handleBatchDelete = () => {
@@ -652,13 +645,13 @@ const handleDelete = (row: any) => {
   })
 }
 
-// 发布文章 - 暂未实现
-// const handleChangeStatus = (row: any) => {
-//   updateStatusApi({ id: row.id, status: row.status }).then((res) => {
-//     ElMessage.success('修改成功')
-//     getList()
-//   })
-// }
+// 发布文章
+const handleChangeStatus = (row: any) => {
+  updateStatusApi({ id: row.id, status: row.status }).then((res) => {
+    ElMessage.success('修改成功')
+    getList()
+  })
+}
 
 // 搜索
 const handleQuery = () => {
@@ -738,9 +731,9 @@ const submitForm = async () => {
 // 取消按钮
 const cancel = () => {
   dialog.visible = false
-  // reptileDialog.visible = false // 爬取功能暂未实现
+  reptileDialog.visible = false
   formRef.value?.resetFields()
-  // reptileForm.url = '' // 爬取功能暂未实现
+  reptileForm.url = ''
 }
 
 // 分页大小改变

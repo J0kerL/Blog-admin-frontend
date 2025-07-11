@@ -25,12 +25,6 @@ export const constantRoutes: RouteRecordRaw[] = [
   },
 
   {
-    path: "/forgot-password",
-    component: () => import("@/views/login/forgot-password.vue"),
-    meta: {hidden: true },
-  },
-
-  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/views/error-page/404.vue'),
     meta: { hidden: true },

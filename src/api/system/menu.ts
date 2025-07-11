@@ -1,22 +1,11 @@
 import request from '@/utils/request'
 
 /**
- * 获取菜单列表（分页）
+ * 获取菜单列表
  */
-export function getMenuListApi(params?: any) {
+export function getMenuListApi() {
   return request({
-    url: '/admin/menu/page',
-    method: 'get',
-    params
-  })
-}
-
-/**
- * 获取所有菜单
- */
-export function getAllMenuApi() {
-  return request({
-    url: '/admin/menu/list',
+    url: '/sys/menu/tree',
     method: 'get'
   })
 }
@@ -26,7 +15,7 @@ export function getAllMenuApi() {
  */
 export function getMenuDetailApi(id: string) {
   return request({
-    url: `/admin/menu/${id}`,
+    url: `/sys/menu/${id}`,
     method: 'get'
   })
 }
@@ -36,7 +25,7 @@ export function getMenuDetailApi(id: string) {
  */
 export function createMenuApi(data: any) {
   return request({
-    url: '/admin/menu',
+    url: '/sys/menu',
     method: 'post',
     data
   })
@@ -47,7 +36,7 @@ export function createMenuApi(data: any) {
  */
 export function updateMenuApi(data: any) {
   return request({
-    url: `/admin/menu`,
+    url: `/sys/menu/`,
     method: 'put',
     data
   })
@@ -58,25 +47,15 @@ export function updateMenuApi(data: any) {
  */
 export function deleteMenuApi(id: string) {
   return request({
-    url: `/admin/menu/${id}`,
+    url: `/sys/menu/${id}`,
     method: 'delete'
   })
 }
 
-/**
- * 批量删除菜单
- */
-export function batchDeleteMenuApi(ids: number[]) {
-  return request({
-    url: `/admin/menu/batch`,
-    method: 'delete',
-    data: ids
-  })
-}
 
 export function listRoutes() {
   return request({
-    url: '/admin/menu/getMenu',
-    method: 'get',
+    url: '/sys/menu',
+    method: 'post',
   })
 }

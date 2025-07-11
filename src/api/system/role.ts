@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getRoleListApi(params?: any) {
   return request({
-    url: '/role/page',
+    url: '/sys/role/',
     method: 'get',
     params
   })
@@ -16,7 +16,7 @@ export function getRoleListApi(params?: any) {
  */
 export function createRoleApi(data: any) {
   return request({
-    url: '/role/add',
+    url: '/sys/role/',
     method: 'post',
     data
   })
@@ -27,7 +27,7 @@ export function createRoleApi(data: any) {
  */
 export function updateRoleApi(data: any) {
   return request({
-    url: `/role/update`,
+    url: `/sys/role/`,
     method: 'put',
     data
   })
@@ -39,9 +39,8 @@ export function updateRoleApi(data: any) {
  */
 export function deleteRoleApi(ids: number[] | number) {
   return request({
-    url: `/role/delete`,
-    method: 'delete',
-    params: { ids }
+    url: `/sys/role/delete/${ids}`,
+    method: 'delete'
   })
 } 
 
