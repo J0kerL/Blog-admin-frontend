@@ -128,4 +128,13 @@ export function forceLogoutApi(token: string) {
   })
 }
 
+// 修改用户密码
+export function changePasswordApi(data: any) {
+  return request({
+    url: '/sys/user/changePassword',
+    method: 'put',
+    data: data
+  })
+}
+
 

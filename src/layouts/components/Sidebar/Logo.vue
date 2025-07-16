@@ -1,7 +1,7 @@
 <template>
   <img
     class="logo-img"
-    :src="logoUrl"
+    src="@/assets/logo.png"
     :width="size"
     :height="size"
     alt="Logo"
@@ -15,8 +15,6 @@ defineProps({
     default: 32
   },
 })
-
-const logoUrl = import.meta.env.VITE_APP_LOGO
 </script>
 
 <style scoped>

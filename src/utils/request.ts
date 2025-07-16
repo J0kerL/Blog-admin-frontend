@@ -15,6 +15,7 @@ service.interceptors.request.use(
   (config) => {
     const token = getToken()
     if (token) {
+      // 直接使用token，不添加Bearer前缀
       config.headers['Authorization'] = token
     }
     return config

@@ -137,24 +137,6 @@
         </el-form>
       </div>
 
-      <!-- 滑块验证 -->
-      <el-dialog
-          title="请拖动滑块完成拼图"
-          width="360px"
-          v-model="showSliderVerify"
-          :close-on-click-modal="false"
-          @closed="refresh"
-          append-to-body
-      >
-        <slider-verify
-            ref="sliderVerifyRef"
-            @success="onSuccess"
-            @fail="onFail"
-            @again="onAgain"
-        />
-      </el-dialog>
-
-
     </div>
   </div>
 </template>
@@ -165,30 +147,8 @@ import type {FormInstance} from "element-plus";
 import {ElMessage} from "element-plus";
 import {useUserStore} from "@/store/modules/user";
 import {useSettingsStore} from "@/store/modules/settings";
-import Logo from "@/layouts/components/Sidebar/Logo.vue";
 import settings from "@/config/settings";
-import SliderVerify from "./components/SliderVerify.vue";
-import {getCaptchaSwitchApi} from "@/api/system/auth";
 
-const QrCode = markRaw({
-  name: "QrCode",
-  render() {
-    return h(
-        "svg",
-        {
-          viewBox: "0 0 1024 1024",
-          width: "1em",
-          height: "1em",
-          fill: "currentColor",
-        },
-        [
-          h("path", {
-            d: "M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm444-140H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h276c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-56 284H556V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zM192 556v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8H160c-4.4 0-8 3.6-8 8zm56 284V556h220v284H192zm-64-220h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm500 220c0 4.4 3.6 8 8 8h108v108c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332zm64-216h108v108H748V624z",
-          }),
-        ]
-    );
-  },
-});
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
 const loginFormRef = ref<FormInstance>();
@@ -196,18 +156,11 @@ const loading = ref(false);
 const rememberMe = ref(false);
 
 
-const showSliderVerify = ref(false);
-const sliderVerifyRef = ref();
-
 const loginForm = reactive({
   username: "",
   password: "",
   captchaCode: "",
   captchaKey: "",
-  rememberMe: false,
-  source: "ADMIN",
-  nonceStr: "",
-  value: "",
 });
 
 const captchaImage = ref("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmNWY1ZjUiLz48dGV4dCB4PSI1MCIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QUJDRDwvdGV4dD48L3N2Zz4=");
@@ -277,35 +230,35 @@ const rules = {
     {required: true, message: "请输入密码", trigger: "blur"},
     {min: 4, max: 20, message: "长度在 4 到 20 个字符", trigger: "blur"},
   ],
-  captchaCode: [
-    {required: true, message: "请输入验证码", trigger: "blur"},
-  ],
+  // 验证码不再是必填项
+  captchaCode: []
 };
 
 const isDark = computed(() => settingsStore.theme === "dark");
 
 const refresh = () => {
-  sliderVerifyRef.value?.refresh();
-};
-
-const onSuccess = (captcha: any) => {
-  loginForm.nonceStr = captcha.nonceStr;
-  loginForm.value = captcha.value;
-
-  login();
+  // 不需要任何操作
 };
 
 const login = () => {
   loading.value = true;
+  // 创建一个新的登录数据对象，只包含用户名和密码
+  const loginData = {
+    username: loginForm.username,
+    password: loginForm.password
+  };
+  
   userStore
-      .login(loginForm)
+      .login(loginData)
       .then(() => {
-        sliderVerifyRef?.value?.verifySuccessEvent();
-        router.push("/");
+        // 登录成功后直接跳转到首页，不需要手动获取用户信息
+        // 导航守卫会自动处理用户信息的获取和路由加载
         ElMessage.success("登录成功");
+        router.push("/");
       })
-      .catch(() => {
-        refresh();
+      .catch((error) => {
+        ElMessage.error("登录失败，请检查用户名和密码");
+        refreshCaptcha(); // 登录失败刷新验证码
       })
       .finally(() => {
         loading.value = false;
@@ -313,25 +266,11 @@ const login = () => {
 };
 
 
-/* 滑动验证失败*/
-const onFail = (msg: string) => {
-  refresh();
-};
-/* 滑动验证异常*/
-const onAgain = () => {
-  ElMessage.error("滑动操作异常，请重试");
-};
-
-
 const handleLogin = async () => {
   loginFormRef.value?.validate((flag) => {
-    getCaptchaSwitchApi().then((res) => {
-      if (!res.data || res.data.configValue === "Y") {
-        showSliderVerify.value = true;
-      } else {
-        login();
-      }
-    });
+    if(flag) {
+      login();
+    }
   });
 };
 
@@ -404,10 +343,6 @@ const toggleForgetPassword = () => {
       password: "",
       captchaCode: "",
       captchaKey: "",
-      rememberMe: false,
-      source: "ADMIN",
-      nonceStr: "",
-      value: "",
     });
     refreshCaptcha();
   }

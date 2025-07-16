@@ -1,8 +1,12 @@
 <template>
     <div class="sidebar-container" :class="settingsStore.sidebarStyle">
       <div v-if="settingsStore.showLogo" class="logo-container" :class="{ 'dark': settingsStore.theme === 'dark' }">
-        <Logo :size="32" class="logo-icon" :color="settingsStore.themeColor" />
-        <span v-show="!isCollapse" class="logo-text" :class="{ 'light': settingsStore.theme === 'dark' ? false : settingsStore.sidebarStyle === 'light' }">{{ settings.title }}</span>
+        <template v-if="isCollapse">
+          <Logo :size="32" class="logo-icon" :color="settingsStore.themeColor" />
+        </template>
+        <template v-else>
+          <span class="logo-text" :class="{ 'light': settingsStore.theme === 'dark' ? false : settingsStore.sidebarStyle === 'light' }">{{ settingsStore.title }}</span>
+        </template>
       </div>
       <el-scrollbar>
         <el-menu style="height: 100%;"
@@ -118,7 +122,7 @@
       height: 60px;
       display: flex;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 16px;
       background-color: v-bind('settingsStore.theme === "dark" ? "#1d1e1f" : (settingsStore.sidebarStyle === "light" ? "#ffffff" : "#304156")');
       
       .logo-icon {
@@ -128,7 +132,7 @@
       .logo-text {
         color: #fff;
         font-size: 18px;
-        margin-left: 12px;
+        /*margin-left: 12px;*/
         font-weight: 600;
         white-space: nowrap;
         

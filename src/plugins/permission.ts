@@ -7,6 +7,8 @@ import { getToken } from '@/utils/auth'
 NProgress.configure({ showSpinner: false })
 
 const whiteList = ['/login'] // 路由白名单
+// 添加路由加载状态标记
+let routesLoaded = false
 
 export function setupPermission() {
   router.beforeEach(async (to, from, next) => {
@@ -26,13 +28,14 @@ export function setupPermission() {
         const userStore = useUserStore();
         const permissionStore = usePermissionStore();
         
-        // 判断是否已经获取过用户信息
-        if (!userStore.user.nickname) {
+        // 判断是否已经获取过用户信息和加载过路由
+        if (!userStore.user.nickname && !routesLoaded) {
           try {
             // 获取用户信息
             await userStore.getUserInfo();
             // 生成可访问路由
             const accessRoutes = await permissionStore.generateRoutes();
+            
             // 添加路由前检查和打印日志
             if (Array.isArray(accessRoutes) && accessRoutes.length > 0) {
               accessRoutes.forEach((route: any) => {
@@ -45,25 +48,35 @@ export function setupPermission() {
                   console.error('Invalid route object:', route);
                 }
               });
-              // 使用 replace 进行重定向，确保路由添加完成
+              
+              // 标记路由已加载
+              routesLoaded = true;
+              
+              // 重定向到目标页面
+              // 这里使用 replace: true 避免在历史记录中留下重定向记录
               next({ ...to, replace: true });
             } else {
-              console.error('No valid routes generated');
+              console.log('没有动态路由，使用默认路由');
+              routesLoaded = true;
               next();
             }
           } catch (error) {
             console.error('Permission error:', error);
             // 移除 token 并跳转登录页
             await userStore.resetToken();
+            // 重置路由加载状态
+            routesLoaded = false;
             next(`/login`);
             NProgress.done();
           }
         } else {
-          // 已经有用户信息，直接放行
+          // 已经有用户信息或路由已加载，直接放行
           next();
         }
       }
     } else {
+      // 重置路由加载状态
+      routesLoaded = false;
       // 未登录可以访问白名单页面
       if (whiteList.indexOf(to.path) !== -1) {
         next();
@@ -76,8 +89,6 @@ export function setupPermission() {
 
   router.afterEach(() => {
     NProgress.done();
-    setTimeout(() => {
-    }, 300)
   });
 }
 

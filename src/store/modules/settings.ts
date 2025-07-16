@@ -31,7 +31,7 @@ export const useSettingsStore = defineStore({
     dynamicTitle: false,
     greyMode: false,
     showFooter: true,
-    title: '拾壹博客管理系统',
+    title: 'Diamond博客管理系统',
     sidebarStyle: 'dark'
   }),
 

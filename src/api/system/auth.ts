@@ -3,23 +3,28 @@ import request from '@/utils/request'
 interface LoginParams {
   username: string
   password: string
-  captchaCode: string
-  captchaKey: string
-  rememberMe: boolean
+  captchaCode?: string
+  captchaKey?: string
 }
 
 // 登录接口
 export function loginApi(data: LoginParams) {
+  // 将前端参数映射为后端需要的格式
+  const params = {
+    account: data.username,
+    password: data.password
+  };
+  
   return request({
-    url: '/auth/login',
+    url: '/user/login',
     method: 'post',
-    data
+    data: params
   })
 }
 
 export function logoutApi() {
     return request({
-      url: '/auth/logout',
+      url: '/user/logout',
       method: 'post',
     })
   }
@@ -27,34 +32,14 @@ export function logoutApi() {
 // 获取用户信息
 export function getUserInfoApi() {
   return request({
-    url: "/auth/info",
-    method: "get",
-    params: {
-      source: "admin"
-    }
+    url: "/user/info",
+    method: "get"
   })
 }
 
 export function getRouters() {
   return request({
-    url: '/sys/menu/routers',
-    method: 'get'
-  })
-}
-
-// 获取验证码
-export function getCaptchaApi() {
-  return request({
-    url: '/auth/getCaptcha',
-    method: 'get'
-  })
-}
-
-
-// 获取验证码开关
-export function getCaptchaSwitchApi() {
-  return request({
-    url: '/sys/config/getConfigByKey/slider_verify_switch',
+    url: '/admin/menu/getMenu',
     method: 'get'
   })
 }

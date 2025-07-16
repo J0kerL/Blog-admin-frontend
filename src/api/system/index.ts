@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getDashboardDataApi() {
   return request({
-    url: '/sys/dashboard',
+    url: '/dashboard/stats',
     method: 'get'
   })
 }
@@ -13,7 +13,7 @@ export function getDashboardDataApi() {
 // 获取文章统计数据
 export function getBottomDataApi() {
   return request({
-    url: '/sys/dashboard/bottom',
+    url: '/dashboard/categories',
     method: 'get'
   })
 }

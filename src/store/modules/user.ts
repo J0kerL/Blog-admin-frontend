@@ -16,10 +16,16 @@ interface UserState {
 
 export const useUserStore = defineStore("user", () => {
   const user = ref({
+    id: null,
+    username: null,
+    avatar: null,
+    email: null,
+    sex: null,
+    roleId: null,
+    status: null,
+    nickname: null,
     roles: [],
     intro: null,
-    avatar: null,
-    nickname: null,
     permissions: []
   });
 
@@ -34,10 +40,18 @@ export const useUserStore = defineStore("user", () => {
       loginApi(loginData)
         .then((response) => {
           const { data } = response;
-          setToken(data.token)
-          resolve();
+          // 确保token存在且正确设置
+          if (data && data.token) {
+            console.log('登录成功，获取到token:', data.token);
+            setToken(data.token);
+            resolve();
+          } else {
+            console.error('登录响应中没有token:', data);
+            reject(new Error("登录失败，未获取到有效的token"));
+          }
         })
         .catch((error) => {
+          console.error('登录请求失败:', error);
           reject(error);
         });
     });
@@ -52,7 +66,22 @@ export const useUserStore = defineStore("user", () => {
             reject("Verification failed, please Login again.");
             return;
           }
-          Object.assign(user.value, { ...data });
+          // 兼容后端UserVO结构
+          user.value = {
+            ...user.value,
+            id: data.id,
+            username: data.username,
+            avatar: data.avatar,
+            email: data.email,
+            sex: data.sex,
+            roleId: data.roleId,
+            status: data.status,
+            // nickname优先展示username
+            nickname: data.nickname || data.username || '用户',
+            permissions: data.permissions || [],
+            roles: data.roles || [],
+            intro: data.intro || null
+          };
           resolve(data);
         })
         .catch((error) => {
@@ -66,8 +95,23 @@ export const useUserStore = defineStore("user", () => {
     return new Promise<void>((resolve, reject) => {
       logoutApi()
         .then(() => {
-          removeToken()
-          location.reload(); // 清空路由
+          removeToken();
+          // 重置用户信息
+          user.value = {
+            id: null,
+            username: null,
+            avatar: null,
+            email: null,
+            sex: null,
+            roleId: null,
+            status: null,
+            nickname: null,
+            roles: [],
+            intro: null,
+            permissions: []
+          };
+          // 跳转到登录页
+          resetRouter();
           resolve();
         })
         .catch((error) => {
@@ -80,7 +124,21 @@ export const useUserStore = defineStore("user", () => {
   function resetToken() {
     console.log("resetToken");
     return new Promise<void>((resolve) => {
-      removeToken()
+      removeToken();
+      // 重置用户信息
+      user.value = {
+        id: null,
+        username: null,
+        avatar: null,
+        email: null,
+        sex: null,
+        roleId: null,
+        status: null,
+        nickname: null,
+        roles: [],
+        intro: null,
+        permissions: []
+      };
       resetRouter();
       resolve();
     });

@@ -3,6 +3,7 @@
     <div class="custom-dropdown" v-click-outside="closeDropdown">
       <div class="avatar-trigger" @click="toggleDropdown">
         <el-avatar :size="32" :src="userStore.user.avatar || ''" />
+        <span class="user-nickname" v-if="userStore.user.nickname" style="margin-left:8px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ userStore.user.nickname }}</span>
         <el-icon class="dropdown-icon" :class="{ 'is-active': isOpen }">
           <CaretBottom />
         </el-icon>
@@ -28,25 +29,13 @@
               </div>
               
               <div class="user-details">
-                <div class="nickname">{{ userStore.user.username }}</div>
+                <div class="nickname">{{ roleName }}</div>
               </div>
             </div>
           </div>
           
           <!-- 菜单项 -->
           <div class="menu-items">
-            <div class="menu-item" @click="toGitee">
-              <div class="menu-icon">
-                <el-icon><Document /></el-icon>
-              </div>
-              <div class="menu-content">
-                <span class="menu-title">仓库地址</span>
-                <span class="menu-desc">查看项目源码</span>
-              </div>
-            </div>
-            
-            <div class="divider"></div>
-            
             <div class="menu-item" @click="toProfile">
               <div class="menu-icon">
                 <el-icon><User /></el-icon>
@@ -54,16 +43,6 @@
               <div class="menu-content">
                 <span class="menu-title">个人中心</span>
                 <span class="menu-desc">管理您的账户信息</span>
-              </div>
-            </div>
-
-            <div class="menu-item" @click="handleLock">
-              <div class="menu-icon">
-                <el-icon><Lock /></el-icon>
-              </div>
-              <div class="menu-content">
-                <span class="menu-title">锁定屏幕</span>
-                <span class="menu-desc">锁定屏幕保护您的隐私</span>
               </div>
             </div>
             
@@ -85,16 +64,15 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { useUserStore,useSettingsStore } from '@/store/index'
 import settings from '@/config/settings'
+import { computed } from 'vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const settingsStore = useSettingsStore()
 const isOpen = ref(false)
-
-const emit = defineEmits(['lock'])
 
 // 切换下拉菜单
 const toggleDropdown = () => {
@@ -104,11 +82,6 @@ const toggleDropdown = () => {
 // 关闭下拉菜单
 const closeDropdown = () => {
   isOpen.value = false
-}
-
-const toGitee = () => {
-  window.open(settings.repository, '_blank')
-  closeDropdown()
 }
 
 const toProfile = () => {
@@ -123,13 +96,13 @@ const logout = () => {
     type: 'warning'
   }).then(async () => {
     await userStore.logout()
+    ElMessage.success({
+      message: '退出登录成功',
+      type: 'success',
+      duration: 2000
+    })
     router.push('/login')
   })
-}
-
-const handleLock = () => {
-  emit('lock')
-  closeDropdown()
 }
 
 // 点击外部关闭指令
@@ -146,6 +119,14 @@ const vClickOutside = {
     document.removeEventListener('click', el._clickOutside)
   }
 }
+
+// 角色ID到中文名映射
+const roleName = computed(() => {
+  const id = userStore.user.roleId
+  if (id === 1) return '超级管理员'
+  if (id === 2) return '管理员'
+  return '普通用户'
+})
 </script>
 
 <style lang="scss" scoped>
@@ -308,6 +289,13 @@ const vClickOutside = {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+}
+
+.user-nickname {
+  font-size: 15px;
+  color: var(--el-text-color-primary);
+  font-weight: 500;
+  vertical-align: middle;
 }
 
 @keyframes pulse {
