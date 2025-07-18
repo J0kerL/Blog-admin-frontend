@@ -9,6 +9,8 @@
       <Breadcrumb />
     </div>
     <div class="navbar-right">
+      <!-- 全局搜索模块 -->
+      <GlobalSearch />
       <!-- 用户信息 -->
       <user-tool />
     </div>
@@ -19,6 +21,7 @@
 import { useSettingsStore } from '@/store/modules/settings'
 import Breadcrumb from './Breadcrumb/index.vue'
 import UserTool from './UserTool/index.vue'
+import GlobalSearch from '@/components/GlobalSearch/index.vue'
 
 const settingsStore = useSettingsStore()
 

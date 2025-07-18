@@ -5,15 +5,6 @@ import { resetRouter } from "@/router";
 import { store } from "@/store";
 import { setToken,removeToken } from "@/utils/auth";
 
-interface UserState {
-  roles: string[];
-  perms: string[];
-  intro: any;
-  avatar: any;
-  nickname: any;
-  permissions: string[];
-}
-
 export const useUserStore = defineStore("user", () => {
   const user = ref({
     id: null,
@@ -42,7 +33,6 @@ export const useUserStore = defineStore("user", () => {
           const { data } = response;
           // 确保token存在且正确设置
           if (data && data.token) {
-            console.log('登录成功，获取到token:', data.token);
             setToken(data.token);
             resolve();
           } else {

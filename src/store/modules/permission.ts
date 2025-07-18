@@ -5,88 +5,105 @@ import { getRouters } from "@/api/system/auth";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 const modules = import.meta.glob("../../views/**/**.vue");
-import ParentView from '@/components/ParentView/index.vue'
+import ParentView from "@/components/ParentView/index.vue";
 
 const Layout = () => import("@/layouts/index.vue");
 
 /**
- * 递归过滤有权限的异步(动态)路由
+ * 将后端菜单数据转换为前端路由格式
  *
- * @param routes 接口返回的异步(动态)路由
- * @returns 返回用户有权限的异步(动态)路由
+ * @param menus 后端返回的菜单数据
+ * @returns 返回转换后的路由数组
  */
-const filterAsyncRoutes = (routes: any[], isRoot = true) => {
-  const asyncRoutes: any[] = [];
+const convertMenusToRoutes = (menus: any[]): any[] => {
+  const routes: any[] = [];
 
-  routes.forEach((route) => {
-    const tmpRoute = { ...route }; // ES6扩展运算符复制新对象
-    
-    if (!tmpRoute.name) {
-      // 确保路由有唯一名称，避免重复
-      tmpRoute.name = tmpRoute.path.replace(/\//g, '_');
+  menus.forEach((menu) => {
+    // 跳过隐藏的菜单
+    if (menu.hidden === 1) {
+      return;
     }
 
-    // 处理组件，将字符串转换为实际的组件
-    if (tmpRoute.component) {
-      if (typeof tmpRoute.component === 'string') {
-        if (tmpRoute.component === 'Layout') {
-          tmpRoute.component = Layout;
-        } else if (tmpRoute.component === 'ParentView') {
-          tmpRoute.component = ParentView;
-        } else {
-          // 处理组件路径
-          let componentPath = '';
-          
-          // 处理以@开头的路径
-          if (tmpRoute.component.startsWith('@/views/')) {
-            // 将 @/views/ 替换为 ../../views/
-            componentPath = `../../${tmpRoute.component.replace('@/', '')}.vue`;
-          } else if (tmpRoute.component.startsWith('/')) {
-            // 以/开头的路径
-            componentPath = `../../views${tmpRoute.component}.vue`;
+    const route: any = {
+      path: menu.path,
+      name: menu.path.replace(/\//g, "_") || `Menu_${menu.id}`,
+      meta: {
+        title: menu.title,
+        icon: menu.icon,
+        hidden: menu.hidden === 1,
+        keepAlive: true,
+        alwaysShow: false,
+      },
+    };
+
+    // 处理组件
+    if (menu.component) {
+      if (menu.component === "Layout") {
+        route.component = Layout;
+      } else if (menu.component === "ParentView") {
+        route.component = ParentView;
+      } else {
+        // 如果是顶级菜单且没有子菜单，使用Layout包装
+        if (!menu.children || menu.children.length === 0) {
+          route.component = Layout;
+          // 将原组件作为子路由
+          let componentPath = "";
+          if (menu.component.startsWith("@/views/")) {
+            componentPath = `../../${menu.component.replace("@/", "")}.vue`;
+          } else if (menu.component.startsWith("/")) {
+            componentPath = `../../views${menu.component}.vue`;
           } else {
-            // 其他情况，假设是相对路径
-            componentPath = `../../views/${tmpRoute.component}.vue`;
+            componentPath = `../../views/${menu.component}.vue`;
           }
-          
-          console.log('尝试加载组件:', componentPath);
-          const component = componentPath ? modules[componentPath] : null;
-          
+
+          const component = modules[componentPath];
           if (component) {
-            tmpRoute.component = component;
+            route.children = [{
+              path: '',
+              component: component,
+              name: route.name + '_child',
+              meta: route.meta
+            }];
           } else {
-            console.error(`找不到组件: ${componentPath}，原始路径: ${tmpRoute.component}`);
-            
-            // 如果所有尝试都失败，使用404页面
-            console.error('组件路径解析失败，使用404页面');
-            tmpRoute.component = () => import('@/views/error-page/404.vue');
+            console.warn(`组件未找到: ${componentPath}，使用404页面`);
+            route.children = [{
+              path: '',
+              component: () => import("@/views/error-page/404.vue"),
+              name: route.name + '_child',
+              meta: route.meta
+            }];
+          }
+        } else {
+          // 有子菜单的情况，处理组件路径
+          let componentPath = "";
+          if (menu.component.startsWith("@/views/")) {
+            componentPath = `../../${menu.component.replace("@/", "")}.vue`;
+          } else if (menu.component.startsWith("/")) {
+            componentPath = `../../views${menu.component}.vue`;
+          } else {
+            componentPath = `../../views/${menu.component}.vue`;
+          }
+
+          const component = modules[componentPath];
+          if (component) {
+            route.component = component;
+          } else {
+            console.warn(`组件未找到: ${componentPath}，使用404页面`);
+            route.component = () => import("@/views/error-page/404.vue");
           }
         }
       }
-
-      // 处理子路由
-      if (tmpRoute.children && tmpRoute.children.length > 0) {
-        tmpRoute.children = filterAsyncRoutes(tmpRoute.children, false);
-      }
     }
 
-    asyncRoutes.push(tmpRoute);
+    // 处理子菜单
+    if (menu.children && menu.children.length > 0) {
+      route.children = convertMenusToRoutes(menu.children);
+    }
+
+    routes.push(route);
   });
 
-  // 只在处理根级路由时添加404路由
-  if (isRoot) {
-    asyncRoutes.push({
-      path: '/:pathMatch(.*)*',
-      name: 'NotFound',
-      component: () => import('@/views/error-page/404.vue'),
-      meta: {
-        title: '404',
-        hidden: true
-      }
-    });
-  }
-
-  return asyncRoutes;
+  return routes;
 };
 
 // setup
@@ -106,22 +123,20 @@ export const usePermissionStore = defineStore("permission", () => {
   function generateRoutes() {
     return new Promise<any[]>((resolve, reject) => {
       // 接口获取所有路由
-      console.log('开始获取路由配置');
+      console.log("开始获取路由配置");
       getRouters()
         .then(({ data: asyncRoutes }) => {
-          console.log('获取路由配置成功:', asyncRoutes);
-          // 过滤和处理路由
-          const accessedRoutes = filterAsyncRoutes(asyncRoutes);
-          console.log('过滤后的路由:', accessedRoutes);
+          console.log("获取路由配置成功:", asyncRoutes);
+
+          // 将后端菜单数据转换为前端路由格式
+          const accessedRoutes = convertMenusToRoutes(asyncRoutes || []);
           setRoutes(accessedRoutes);
           resolve(accessedRoutes);
         })
         .catch((error) => {
-          console.error('获取路由配置失败:', error);
-          // 如果获取路由失败，使用默认路由
-          const defaultRoutes: any[] = [];
-          setRoutes(defaultRoutes);
-          resolve(defaultRoutes);
+          console.error("获取路由配置失败:", error);
+          console.error("错误详情:", error.response || error.message);
+          reject(error);
         });
     });
   }

@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 /**
- * 获取角色列表
+ * 获取角色列表（分页查询）
  */
 export function getRoleListApi(params?: any) {
   return request({
-    url: '/sys/role/',
+    url: '/role/page',
     method: 'get',
     params
   })
@@ -16,7 +16,7 @@ export function getRoleListApi(params?: any) {
  */
 export function createRoleApi(data: any) {
   return request({
-    url: '/sys/role/',
+    url: '/role/add',
     method: 'post',
     data
   })
@@ -27,51 +27,39 @@ export function createRoleApi(data: any) {
  */
 export function updateRoleApi(data: any) {
   return request({
-    url: `/sys/role/`,
+    url: '/role/update',
     method: 'put',
     data
   })
 }
 
-
 /**
  * 删除角色
  */
-export function deleteRoleApi(ids: number[] | number) {
+export function deleteRoleApi(ids: string) {
   return request({
-    url: `/sys/role/delete/${ids}`,
-    method: 'delete'
+    url: '/role/delete',
+    method: 'delete',
+    params: { ids }
   })
-} 
+}
 
 /**
- * 获取角色的菜单权限
+ * 获取所有角色列表
  */
+export function getAllRoleListApi() {
+  return request({
+    url: '/role/list',
+    method: 'get'
+  })
+}
+
+// 临时兼容函数，如果后端没有对应API，返回空数据
 export function getRoleMenusApi(roleId: number) {
-  return request({
-    url: `/sys/role/menus/${roleId}`,
-    method: 'get'
-  })
+  return Promise.resolve({ data: [] })
 }
 
-/**
- * 修改角色的菜单权限
- */
 export function updateRoleMenusApi(roleId: any, menuIds: any) {
-  return request({
-    url: `/sys/role/menus/${roleId}`,
-    method: 'put',
-    data: menuIds
-  })
-}
-
-/**
- * 获取角色列表
- */
-export function getAllRoleList() {
-  return request({
-    url: '/sys/role/all',
-    method: 'get'
-  })
+  return Promise.resolve({ data: 'success' })
 }
 

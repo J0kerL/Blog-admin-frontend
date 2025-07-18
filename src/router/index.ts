@@ -1,4 +1,3 @@
-import { title } from "process";
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
 export const Layout = () => import("@/layouts/index.vue");
@@ -21,7 +20,7 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/login",
     component: () => import("@/views/login/index.vue"),
-    meta: {hidden: true },
+    meta: { hidden: true },
   },
 
   {
@@ -49,7 +48,27 @@ export const constantRoutes: RouteRecordRaw[] = [
         },
       },
     ],
-  }
+  },
+
+  {
+    path: "/system",
+    component: Layout,
+    meta: { hidden: true },
+    children: [
+      {
+        path: "profile",
+        component: () => import("@/views/profile/index.vue"),
+        name: "Profile",
+        meta: {
+          title: "个人中心",
+          icon: "User",
+          keepAlive: true,
+          alwaysShow: false,
+          hidden: true,
+        },
+      },
+    ],
+  },
 ];
 
 /**

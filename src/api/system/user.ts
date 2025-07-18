@@ -1,74 +1,96 @@
 import request from '@/utils/request'
 
 /**
- * 获取用户列表
+ * 获取用户列表（分页查询）
  */
 export function getUserListApi(params?: any) {
   return request({
-    url: '/sys/user',
+    url: '/user/page',
     method: 'get',
     params
   })
 }
 
-/**
- * 获取用户详情
- */
-export function getUserDetailApi(id: string) {
-  return request({
-    url: `/sys/user/${id}`,
-    method: 'get'
-  })
-}
+// 兼容旧的函数名
+export const getUserList = getUserListApi
 
 /**
  * 新增用户
  */
 export function createUserApi(data: any) {
   return request({
-    url: '/sys/user',
+    url: '/user/add',
     method: 'post',
     data
   })
 }
+
+// 兼容旧的函数名
+export const addUser = createUserApi
 
 /**
  * 修改用户
  */
 export function updateUserApi(data: any) {
   return request({
-    url: `/sys/user`,
+    url: '/user/update',
     method: 'put',
     data
   })
 }
+
+// 兼容旧的函数名
+export const updateUser = updateUserApi
 
 /**
  * 删除用户
  */
-export function deleteUserApi(ids: string[] | number) {
+export function deleteUserApi(ids: string) {
   return request({
-    url: `/sys/user/delete/${ids}`,
-    method: 'delete'
+    url: '/user/delete',
+    method: 'delete',
+    params: { ids }
   })
 }
 
+// 兼容旧的函数名
+export const deleteUser = deleteUserApi
+
 /**
- * 重置密码
+ * 重置用户密码
  */
-export function resetPasswordApi(data: any) {
+export function resetUserPwdApi(data: any) {
   return request({
-    url: '/sys/user/reset',
+    url: '/user/resetPwd',
     method: 'put',
     data
   })
 }
+
+// 兼容旧的函数名
+export const resetUserPwd = resetUserPwdApi
+
+/**
+ * 获取角色选项（临时实现，返回固定选项）
+ */
+export function getRoleOptionsApi() {
+  return Promise.resolve({
+    data: [
+      { id: 1, name: '超级管理员' },
+      { id: 2, name: '管理员' },
+      { id: 3, name: '普通用户' }
+    ]
+  })
+}
+
+// 兼容旧的函数名
+export const getRoleOptions = getRoleOptionsApi
 
 
 // 获取用户个人信息
 export function getUserProfileApi() {
   return request({
-    url: '/sys/user/profile',
+    url: '/user/info',
     method: 'get'
   })
 }
@@ -76,7 +98,7 @@ export function getUserProfileApi() {
 // 修改用户个人信息
 export function updateUserProfileApi(data: any) {
   return request({
-    url: '/sys/user/updProfile',
+    url: '/user/update',
     method: 'put',
     data: data
   })
@@ -89,7 +111,7 @@ export function updateUserPwdApi(oldPassword: string, newPassword: string) {
     newPassword
   }
   return request({
-    url: '/sys/user/updatePwd',
+    url: '/user/updatePwd',
     method: 'put',
     data
   })
@@ -98,7 +120,7 @@ export function updateUserPwdApi(oldPassword: string, newPassword: string) {
 // 用户头像上传
 export function uploadAvatar(data: any) {
   return request({
-    url: '/system/user/profile/avatar',
+    url: '/user/avatar',
     method: 'post',
     data: data
   })
@@ -106,7 +128,7 @@ export function uploadAvatar(data: any) {
 
 export function verifyPassword(password: string) {
   return request({
-    url: `/sys/user/verifyPassword/${password}`,
+    url: `/user/verifyPassword/${password}`,
     method: 'get'
   })
 }
@@ -131,7 +153,7 @@ export function forceLogoutApi(token: string) {
 // 修改用户密码
 export function changePasswordApi(data: any) {
   return request({
-    url: '/sys/user/changePassword',
+    url: '/user/changePassword',
     method: 'put',
     data: data
   })
