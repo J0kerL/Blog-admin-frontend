@@ -11,13 +11,24 @@ export function getFileListApi(params: any) {
 }
 
 // 上传文件
-export function uploadApi(data: any, source: string) {
+export function uploadApi(data: FormData, type: string = 'image') {
   return request({
     url: '/file/upload',
     method: 'post',
-    headers: { "Content-Type": "multipart/articles-data" },
+    headers: { "Content-Type": "multipart/form-data" },
     data,
-    params: { source: source }
+    params: { type: type }
+  })
+}
+
+// 批量上传文件
+export function batchUploadApi(data: FormData, type: string = 'image') {
+  return request({
+    url: '/file/batch-upload',
+    method: 'post',
+    headers: { "Content-Type": "multipart/form-data" },
+    data,
+    params: { type: type }
   })
 }
 

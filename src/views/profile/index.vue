@@ -52,7 +52,7 @@
               <el-radio-group v-model="userForm.sex" :disabled="!editMode">
                 <el-radio :label="1">男</el-radio>
                 <el-radio :label="2">女</el-radio>
-                <el-radio :label="0">沃尔玛购物袋</el-radio>
+                <el-radio :label="0">保密</el-radio>
               </el-radio-group>
             </el-form-item>
 
@@ -375,16 +375,18 @@ const submitPasswordForm = async () => {
 
 // 头像上传前的校验
 const beforeAvatarUpload = (file: File) => {
-  const isImage = file.type.startsWith("image/");
-  const isLt2M = file.size / 1024 / 1024 < 2;
+  // 支持的图片格式
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+  const isValidType = allowedTypes.includes(file.type);
+  const isLt5M = file.size / 1024 / 1024 < 5; // 调整为5MB限制，与后端保持一致
 
-  if (!isImage) {
-    ElMessage.error("上传头像图片只能是图片格式!");
+  if (!isValidType) {
+    ElMessage.error("头像只支持 jpg、jpeg、png、gif、bmp、webp 格式的图片!");
     return false;
   }
 
-  if (!isLt2M) {
-    ElMessage.error("上传头像图片大小不能超过 2MB!");
+  if (!isLt5M) {
+    ElMessage.error("头像图片大小不能超过 5MB!");
     return false;
   }
 
@@ -397,14 +399,33 @@ const uploadAvatar = async (options: any) => {
     const formData = new FormData();
     formData.append("file", options.file);
 
-    const { data } = await uploadAvatarApi(formData);
-    if (data) {
-      userInfo.value.avatar = data;
+    // 第一步：上传头像文件到文件服务器
+    const response = await uploadAvatarApi(formData);
+    
+    // 处理后端返回的数据格式 (code: 200 表示成功)
+    if (response.code === 200 && response.data) {
+      const avatarUrl = response.data;
+      
+      // 第二步：更新用户信息中的头像字段
+      await updateUserProfileApi({
+        id: userInfo.value.id,
+        username: userInfo.value.username,
+        email: userInfo.value.email,
+        sex: userInfo.value.sex,
+        status: userInfo.value.status,
+        avatar: avatarUrl
+      });
+      
+      // 更新本地用户信息
+      userInfo.value.avatar = avatarUrl;
       ElMessage.success("头像上传成功");
+    } else {
+      ElMessage.error(response.msg || "头像上传失败");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("上传头像失败", error);
-    ElMessage.error("上传头像失败");
+    const errorMsg = error.response?.data?.msg || error.message || "头像上传失败，请重试";
+    ElMessage.error(errorMsg);
   }
 };
 

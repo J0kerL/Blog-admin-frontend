@@ -3,23 +3,25 @@
     <!-- 搜索表单 -->
     <div class="search-wrapper">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-        <el-form-item label="用户名" prop="nickname">
+        <el-form-item label="用户名" prop="username">
           <el-input
-            v-model="queryParams.nickname"
+            v-model="queryParams.username"
             placeholder="请输入用户名"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="登录方式" prop="loginType">
-          <el-select v-model="queryParams.loginType" placeholder="请选择登录方式" clearable>
-            <el-option v-for="item in loginTypes" :label="item.label" :value="item.value" />
+        <el-form-item label="性别" prop="sex">
+          <el-select v-model="queryParams.sex" placeholder="请选择性别" clearable>
+            <el-option label="男" :value="1" />
+            <el-option label="女" :value="2" />
+            <el-option label="保密" :value="0" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
-            <el-option label="启用" value="1" />
-            <el-option label="禁用" value="0" />
+            <el-option label="启用" :value="1" />
+            <el-option label="禁用" :value="0" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -62,18 +64,15 @@
             <el-image :src="row.avatar" style="width: 40px; height: 40px; border-radius: 5px;" />
           </template>
         </el-table-column>
-        <el-table-column label="昵称" align="center" prop="nickname" show-overflow-tooltip />
-        <el-table-column label="登录方式" align="center" prop="ipLocation" >
+        <el-table-column label="用户名" align="center" prop="username" show-overflow-tooltip />
+        <el-table-column label="邮箱" align="center" prop="email" show-overflow-tooltip />
+        <el-table-column label="性别" align="center" prop="sex">
           <template #default="{ row }">
-            <span v-for="item in loginTypes">
-                <el-tag :type="item.style" v-if="row.loginType === item.value">
-                  {{ item.label}}
-              </el-tag>
-            </span>
+            <el-tag :type="row.sex === 1 ? 'primary' : row.sex === 2 ? 'success' : 'info'">
+              {{ row.sex === 1 ? '男' : row.sex === 2 ? '女' : '保密' }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="登录IP" align="center" prop="ip" show-overflow-tooltip />
-        <el-table-column label="登录地址" align="center" prop="ipLocation" show-overflow-tooltip />
         <el-table-column label="状态" align="center" width="80">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
@@ -81,8 +80,13 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="最后登录时间" align="center" prop="lastLoginTime" width="160" />
-        <el-table-column label="创建时间" align="center" prop="createTime" width="160" />
+        <el-table-column label="角色" align="center" prop="roleId" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getRoleTagType(row.roleId)">
+              {{ getRoleName(row.roleId) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" width="280" fixed="right">
           <template #default="scope">
             <el-button
@@ -110,7 +114,7 @@
       <!-- 分页组件 -->
       <div class="pagination-container">
         <el-pagination
-          v-model:current-page="queryParams.pageNum"
+          v-model:current-page="queryParams.page"
           v-model:page-size="queryParams.pageSize"
           :page-sizes="[10, 20, 30, 50]"
           :total="total"
@@ -149,27 +153,7 @@
               />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="昵称" prop="nickname">
-              <el-input 
-                v-model="userForm.nickname" 
-                placeholder="请输入昵称"
-                clearable 
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
 
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="手机号" prop="mobile">
-              <el-input 
-                v-model="userForm.mobile" 
-                placeholder="请输入手机号"
-                clearable 
-              />
-            </el-form-item>
-          </el-col>
           <el-col :span="12">
             <el-form-item label="邮箱" prop="email">
               <el-input 
@@ -204,10 +188,9 @@
           </el-col>
         </el-row>
 
-        <el-form-item label="角色" prop="roleIds">
+        <el-form-item label="角色" prop="roleId">
           <el-select
-            v-model="userForm.roleIds"
-            multiple
+            v-model="userForm.roleId"
             placeholder="请选择角色"
             style="width: 100%"
             :disabled="userForm.username === 'admin'"
@@ -283,14 +266,15 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getUserList, addUser, updateUser, deleteUser, resetUserPwd, getRoleOptions } from '@/api/system/user'
+import ButtonGroup from '@/components/ButtonGroup/index.vue'
 
 // 查询参数
 const queryParams = reactive({
-  pageNum: 1,
+  page: 1,
   pageSize: 10,
-  nickname: '',
+  username: '',
   status: '',
-  loginType: ''
+  sex: ''
 })
 
 // 登录方式选项
@@ -322,13 +306,11 @@ const userFormRef = ref<FormInstance>()
 const userForm = reactive({
   id: undefined,
   username: '',
-  nickname: '',
   password: '',
-  mobile: '',
   email: '',
   sex: 1,
   status: 1,
-  roleIds: []
+  roleId: undefined
 })
 
 // 表单验证规则
@@ -337,20 +319,14 @@ const rules = reactive<FormRules>({
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
   ],
-  nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' }
-  ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+    { min: 4, max: 20, message: '长度在 4 到 20 个字符', trigger: 'blur' }
   ],
   email: [
     { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
   ],
-  mobile: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
-  ],
-  roleIds: [
+  roleId: [
     { required: true, message: '请选择角色', trigger: 'change' }
   ]
 })
@@ -367,7 +343,7 @@ const resetPwdForm = reactive({
 const resetPwdRules = reactive<FormRules>({
   password: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+    { min: 4, max: 20, message: '长度在 4 到 20 个字符', trigger: 'blur' }
   ],
   confirmPassword: [
     { required: true, message: '请再次输入新密码', trigger: 'blur' },
@@ -409,11 +385,35 @@ const getList = async () => {
 // 获取角色选项
 const getRoles = async () => {
   try {
-    const { data } = await getRoleOptions()
-    roleOptions.value = data
+    // 使用固定的角色选项，因为后端getRoleOptions返回的是临时数据
+    roleOptions.value = [
+      { id: 1, name: '超级管理员' },
+      { id: 2, name: '管理员' },
+      { id: 3, name: '普通用户' }
+    ]
   } catch (error) {
     console.error('获取角色列表失败', error)
   }
+}
+
+// 获取角色名称
+const getRoleName = (roleId: number) => {
+  const roleMap = {
+    1: '超级管理员',
+    2: '管理员',
+    3: '普通用户'
+  }
+  return roleMap[roleId as keyof typeof roleMap] || '未知角色'
+}
+
+// 获取角色标签类型
+const getRoleTagType = (roleId: number) => {
+  const typeMap = {
+    1: 'danger',   // 超级管理员 - 红色
+    2: 'warning',  // 管理员 - 橙色
+    3: 'primary'   // 普通用户 - 蓝色
+  }
+  return typeMap[roleId as keyof typeof typeMap] || 'info'
 }
 
 // 表格多选框选中数据
@@ -423,15 +423,15 @@ const handleSelectionChange = (selection: any[]) => {
 
 // 搜索按钮操作
 const handleQuery = () => {
-  queryParams.pageNum = 1
+  queryParams.page = 1
   getList()
 }
 
 // 重置按钮操作
 const resetQuery = () => {
-  queryParams.nickname = ''
+  queryParams.username = ''
   queryParams.status = ''
-  queryParams.loginType = ''
+  queryParams.sex = ''
   handleQuery()
 }
 
@@ -471,14 +471,16 @@ const submitResetPwd = async () => {
     if (valid) {
       submitLoading.value = true
       try {
-        await resetUserPwd({
-          userId: resetPwdForm.userId,
+        // 使用更新用户接口来重置密码
+        await updateUser({
+          id: resetPwdForm.userId,
           password: resetPwdForm.password
         })
         ElMessage.success('密码重置成功')
         resetPwdDialog.visible = false
       } catch (error) {
         console.error('密码重置失败', error)
+        ElMessage.error('密码重置失败')
       } finally {
         submitLoading.value = false
       }
@@ -489,7 +491,7 @@ const submitResetPwd = async () => {
 // 删除按钮操作
 const handleDelete = (row: any) => {
   ElMessageBox.confirm(
-    `确定要删除用户"${row.nickname}"吗？`,
+    `确定要删除用户"${row.username}"吗？`,
     '警告',
     {
       confirmButtonText: '确定',
@@ -542,9 +544,19 @@ const submitForm = async () => {
       submitLoading.value = true
       try {
         if (dialog.type === 'add') {
-          await addUser(userForm)
+          // 新增用户时发送完整的AddUserDTO数据
+          const addUserData = {
+            username: userForm.username,
+            password: userForm.password,
+            email: userForm.email,
+            sex: userForm.sex,
+            status: userForm.status,
+            roleId: userForm.roleId
+          }
+          await addUser(addUserData)
           ElMessage.success('新增成功')
         } else {
+          // 修改用户时发送完整的UserDTO数据
           await updateUser(userForm)
           ElMessage.success('修改成功')
         }
@@ -572,13 +584,11 @@ const resetForm = () => {
   }
   userForm.id = undefined
   userForm.username = ''
-  userForm.nickname = ''
   userForm.password = ''
-  userForm.mobile = ''
   userForm.email = ''
   userForm.sex = 1
   userForm.status = 1
-  userForm.roleIds = []
+  userForm.roleId = undefined
 }
 
 // 分页大小改变
@@ -589,7 +599,7 @@ const handleSizeChange = (val: number) => {
 
 // 分页页码改变
 const handleCurrentChange = (val: number) => {
-  queryParams.pageNum = val
+  queryParams.page = val
   getList()
 }
 

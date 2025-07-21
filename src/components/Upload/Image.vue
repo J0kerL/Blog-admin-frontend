@@ -3,20 +3,21 @@
     <el-upload
       v-model:file-list="fileList"
       :action="uploadUrl"
+      :http-request="customUpload"
       list-type="picture-card"
       :headers="headers"
       :multiple="multiple"
       :limit="limit"
+      :accept="accept"
       :on-preview="handlePreview"
       :on-remove="handleRemove"
-      :on-success="handleSuccess"
       :on-exceed="handleExceed"
       :before-upload="beforeUpload"
     >
       <el-icon><Plus /></el-icon>
       <template #tip>
         <div class="upload-tip">
-          只能上传jpg/png/gif文件，且不超过{{ fileSize }}MB
+          {{ getUploadTip() }}
         </div>
       </template>
     </el-upload>
@@ -33,7 +34,8 @@ import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import type { UploadProps, UploadUserFile } from 'element-plus'
 import { getToken } from '@/utils/auth'
-import { uploadApi,deleteFileApi } from '@/api/file'
+import { uploadApi, deleteFileApi } from '@/api/file'
+
 const props = defineProps({
   modelValue: {
     type: [String, Array],
@@ -51,16 +53,22 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  source: {
+  // 文件类型：avatar-头像，image-图片，document-文档，video-视频，audio-音频
+  fileType: {
     type: String,
-    default: 'default'
+    default: 'image'
+  },
+  // 支持的文件格式
+  accept: {
+    type: String,
+    default: 'image/*'
   }
 })
 
 const emit = defineEmits(['update:modelValue'])
 
-// 上传地址
-const uploadUrl =  `${import.meta.env.VITE_APP_BASE_API}/file/upload?source=${props.source}`
+// 上传地址 - 使用自定义上传方法，不再使用action
+const uploadUrl = '#'
 
 // 请求头
 const headers = {
@@ -106,29 +114,38 @@ const handleRemove: UploadProps['onRemove'] = async (uploadFile: any) => {
   }
 }
 
-// 处理上传成功
-const handleSuccess: UploadProps['onSuccess'] = async (response) => {
-  console.log(response)
-  if (response.code === 200) {
-    const url = response.data
-    if (props.multiple) {
-      const urls = props.modelValue ? [...(props.modelValue as string[])] : []
-      urls.push(url)
-      emit('update:modelValue', urls)
-      fileList.value = urls.map(u => ({
-        name: u.substring(u.lastIndexOf('/') + 1),
-        url: u
-      }))
+// 自定义上传方法
+const customUpload = async (options: any) => {
+  try {
+    const formData = new FormData()
+    formData.append('file', options.file)
+    
+    const response = await uploadApi(formData, props.fileType)
+    
+    if (response.code === 200) {
+      const url = response.data
+      if (props.multiple) {
+        const urls = props.modelValue ? [...(props.modelValue as string[])] : []
+        urls.push(url)
+        emit('update:modelValue', urls)
+        fileList.value = urls.map(u => ({
+          name: u.substring(u.lastIndexOf('/') + 1),
+          url: u
+        }))
+      } else {
+        emit('update:modelValue', url)
+        fileList.value = [{
+          name: url.substring(url.lastIndexOf('/') + 1),
+          url: url
+        }]
+      }
+      ElMessage.success('上传成功')
     } else {
-      emit('update:modelValue', url)
-      fileList.value = [{
-        name: url.substring(url.lastIndexOf('/') + 1),
-        url: url
-      }]
+      ElMessage.error(response.msg || '上传失败')
     }
-    ElMessage.success('上传成功')
-  } else {
-    ElMessage.error('上传失败')
+  } catch (error: any) {
+    console.error('上传失败:', error)
+    ElMessage.error(error.response?.data?.msg || '上传失败，请重试')
   }
 }
 
@@ -137,19 +154,51 @@ const handleExceed: UploadProps['onExceed'] = () => {
   ElMessage.warning(`最多只能上传 ${props.limit} 个文件`)
 }
 
+// 获取上传提示文本
+const getUploadTip = () => {
+  const typeMap = {
+    'avatar': '头像图片(jpg, jpeg, png, gif, bmp, webp, svg)',
+    'image': '图片文件(jpg, jpeg, png, gif, bmp, webp, svg)',
+    'document': '文档文件(doc, docx, pdf, txt, zip, rar, xls, xlsx, ppt, pptx)',
+    'video': '视频文件(mp4, avi, mov, wmv, flv, webm, mkv)',
+    'audio': '音频文件(mp3, wav, flac, aac, ogg, m4a)'
+  }
+  
+  const typeDesc = typeMap[props.fileType as keyof typeof typeMap] || '文件'
+  return `支持${typeDesc}，大小不超过${props.fileSize}MB`
+}
+
+// 文件类型验证
+const validateFileType = (file: File) => {
+  const extension = '.' + file.name.split('.').pop()?.toLowerCase()
+  
+  const typeValidation = {
+    'avatar': /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i,
+    'image': /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i,
+    'document': /\.(doc|docx|pdf|txt|zip|rar|xls|xlsx|ppt|pptx)$/i,
+    'video': /\.(mp4|avi|mov|wmv|flv|webm|mkv)$/i,
+    'audio': /\.(mp3|wav|flac|aac|ogg|m4a)$/i
+  }
+  
+  const pattern = typeValidation[props.fileType as keyof typeof typeValidation]
+  return pattern ? pattern.test(file.name) : false
+}
+
 // 上传前的校验
 const beforeUpload: UploadProps['beforeUpload'] = (file) => {
-  const isImage = /^image\/(jpeg|png|gif)$/.test(file.type)
-  const isLt = file.size / 1024 / 1024 < props.fileSize
-
-  if (!isImage) {
-    ElMessage.error('只能上传jpg/png/gif格式的图片!')
+  // 文件类型检查
+  if (!validateFileType(file)) {
+    ElMessage.error(`不支持的文件类型，请上传${getUploadTip()}`)
     return false
   }
-  if (!isLt) {
-    ElMessage.error(`图片大小不能超过 ${props.fileSize}MB!`)
+  
+  // 文件大小检查
+  const isLtSize = file.size / 1024 / 1024 < props.fileSize
+  if (!isLtSize) {
+    ElMessage.error(`文件大小不能超过 ${props.fileSize}MB!`)
     return false
   }
+  
   return true
 }
 

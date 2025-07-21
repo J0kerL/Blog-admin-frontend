@@ -118,11 +118,15 @@ export function updateUserPwdApi(oldPassword: string, newPassword: string) {
 }
 
 // 用户头像上传
-export function uploadAvatar(data: any) {
+export function uploadAvatar(data: FormData) {
   return request({
-    url: '/user/avatar',
+    url: '/file/upload',
     method: 'post',
-    data: data
+    headers: { "Content-Type": "multipart/form-data" },
+    data: data,
+    params: {
+      type: 'avatar'
+    }
   })
 }
 
