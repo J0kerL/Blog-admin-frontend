@@ -49,8 +49,7 @@
         <el-table-column label="角色名称" align="center" prop="name" show-overflow-tooltip />
         <el-table-column label="角色编码" align="center" prop="code" show-overflow-tooltip />
         <el-table-column label="备注" prop="remarks"  align="center" width="400" show-overflow-tooltip />
-        <el-table-column label="创建时间" align="center" prop="createTime" width="180" show-overflow-tooltip />
-        <el-table-column label="操作" align="center" width="250" fixed="right">
+        <el-table-column label="操作" align="center" width="180" fixed="right">
           <template #default="scope">
             <el-button
               type="primary"
@@ -58,12 +57,6 @@
               icon="Edit"
               @click="handleUpdate(scope.row)"
             >修改</el-button>
-            <el-button
-              type="primary"
-              link
-              icon="Setting"
-              @click="handlePermission(scope.row)"
-            >权限</el-button>
             <el-button
               type="danger"
               link
@@ -77,7 +70,7 @@
       <!-- 分页组件 -->
       <div class="pagination-container">
         <el-pagination
-          v-model:current-page="queryParams.pageNum"
+          v-model:current-page="queryParams.page"
           v-model:page-size="queryParams.pageSize"
           :page-sizes="[10, 20, 30, 50]"
           :total="total"
@@ -122,39 +115,7 @@
       </template>
     </el-dialog>
 
-    <!-- 分配权限对话框 -->
-    <el-dialog
-      title="分配权限"
-      v-model="permissionDialog.visible"
-      width="600px"
-      append-to-body
-      destroy-on-close
-      top="5vh"
-    >
-      <el-form label-width="80px">
-        <el-form-item label="角色名称">
-          <el-input v-model="permissionDialog.roleInfo.name" disabled />
-        </el-form-item>
-          <el-form-item label="权限设置">
-            <el-scrollbar height="400px">
-              <el-tree
-                ref="menuTreeRef"
-                node-key="id"
-                show-checkbox
-                :props="{ label: 'title', children: 'children' }"
-                :data="menuOptions"
-                :default-expand-all="true"
-              ></el-tree>
-            </el-scrollbar>
-          </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" :loading="submitLoading" @click="submitPermission">确 定</el-button>
-          <el-button @click="permissionDialog.visible = false">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
+
   </div>
 </template>
 
@@ -166,18 +127,13 @@ import {
   getRoleListApi,
   createRoleApi,
   updateRoleApi,
-  deleteRoleApi,
-  getRoleMenusApi,
-  updateRoleMenusApi
+  deleteRoleApi
 } from '@/api/system/role'
-import {
-  getMenuListApi
-} from '@/api/system/menu'
 import ButtonGroup from '@/components/ButtonGroup/index.vue'
 
 // 查询参数
 const queryParams = reactive({
-  pageNum: 1,
+  page: 1,
   pageSize: 10,
   name: ''
 })
@@ -187,7 +143,6 @@ const total = ref(0)
 const roleList = ref([])
 const queryFormRef = ref<FormInstance>()
 const roleFormRef = ref<FormInstance>()
-const menuTreeRef = ref<any>()
 const submitLoading = ref(false)
 
 // 弹窗控制
@@ -215,17 +170,6 @@ const rules = reactive<FormRules>({
     { required: true, message: '角色编码不能为空', trigger: 'blur' }
   ]
 })
-
-// 权限设置弹窗
-const permissionDialog = reactive<any>({
-  visible: false,
-  roleInfo: {
-    id: undefined,
-    name: ''
-  }
-})
-
-const menuOptions = ref<any>([])
 
 // 添加选中项数组
 const selectedIds = ref<number[]>([])
@@ -272,7 +216,7 @@ const getList = async () => {
 
 // 搜索按钮操作
 const handleQuery = () => {
-  queryParams.pageNum = 1
+  queryParams.page = 1
   getList()
 }
 
@@ -361,51 +305,7 @@ const resetForm = () => {
   roleForm.remarks = ''
 }
 
-// 权限设置按钮操作
-const handlePermission = async (row: any) => {
-  permissionDialog.roleInfo.id = row.id
-  permissionDialog.roleInfo.name = row.name
-  permissionDialog.visible = true
-  
-  // 获取菜单树
-  try {
-    const { data: menuData } = await getMenuListApi()
-    menuOptions.value = menuData
-    
-    // 获取角色已有权限
-    const { data: roleMenus } = await getRoleMenusApi(row.id)
-    if (menuTreeRef.value && roleMenus) {
-      menuTreeRef.value.setCheckedKeys(roleMenus)
-    }
-  } catch (error) {
-    console.error('获取权限数据失败', error)
-  }
-}
 
-// 提交权限设置
-const submitPermission = async () => {
-  if (!menuTreeRef.value) return
-  
-  submitLoading.value = true
-  try {
-    // 获取选中和半选中的节点
-    const checkedKeys = menuTreeRef.value.getCheckedKeys()
-    const halfCheckedKeys = menuTreeRef.value.getHalfCheckedKeys()
-    const menuIds = [...checkedKeys, ...halfCheckedKeys]
-    
-    await updateRoleMenusApi({
-      roleId: permissionDialog.roleInfo.id,
-      menuIds
-    })
-    
-    ElMessage.success('权限设置成功')
-    permissionDialog.visible = false
-  } catch (error) {
-    console.error('权限设置失败', error)
-  } finally {
-    submitLoading.value = false
-  }
-}
 
 // 分页大小改变
 const handleSizeChange = (val: number) => {
@@ -415,7 +315,7 @@ const handleSizeChange = (val: number) => {
 
 // 分页页码改变
 const handleCurrentChange = (val: number) => {
-  queryParams.pageNum = val
+  queryParams.page = val
   getList()
 }
 
