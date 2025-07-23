@@ -3,10 +3,10 @@
     <!-- 搜索表单 -->
     <div class="search-wrapper">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-        <el-form-item label="名称" prop="name">
+        <el-form-item label="标签名称" prop="name">
           <el-input
             v-model="queryParams.name"
-            placeholder="请输入名称"
+            placeholder="请输入标签名称"
             clearable
             @keyup.enter="handleQuery"
           />
@@ -23,84 +23,39 @@
       <template #header>
         <div class="card-header">
           <ButtonGroup>
-            <el-button
-              type="primary"
-              icon="Plus"
-              @click="handleAdd"
-            >新增</el-button>
-            <el-button
-              type="danger"
-              icon="Delete"
-              :disabled="selectedIds.length === 0"
-              @click="handleBatchDelete"
-            >批量删除</el-button>
+            <el-button type="primary" icon="Plus" @click="handleAdd">新增</el-button>
+            <el-button type="danger" icon="Delete" :disabled="selectedIds.length === 0"
+              @click="handleBatchDelete">批量删除</el-button>
           </ButtonGroup>
         </div>
       </template>
 
       <!-- 数据表格 -->
-      <el-table
-        v-loading="loading"
-        :data="tagList"
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection"  width="55" align="center" />
+      <el-table v-loading="loading" :data="tagList" style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="名称" align="center" prop="name" show-overflow-tooltip />
-        <el-table-column label="创建时间" align="center" prop="createTime" width="180" />
         <el-table-column label="操作" align="center" width="200" fixed="right">
           <template #default="scope">
-            <el-button
-              type="primary"
-              link
-              icon="Edit"
-              @click="handleUpdate(scope.row)"
-            >修改</el-button>
-            <el-button
-              type="danger"
-              link
-              icon="Delete"
-              @click="handleDelete(scope.row)"
-            >删除</el-button>
+            <el-button type="primary" link icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
+            <el-button type="danger" link icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页组件 -->
       <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="queryParams.pageNum"
-          v-model:page-size="queryParams.pageSize"
-          :page-sizes="[10, 20, 30, 50]"
-          :total="total"
-          :background="true"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
+        <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize"
+          :page-sizes="[10, 20, 30, 50]" :total="total" :background="true"
+          layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
+          @current-change="handleCurrentChange" />
       </div>
     </el-card>
 
     <!-- 添加或修改对话框 -->
-    <el-dialog
-      :title="dialog.title"
-      v-model="dialog.visible"
-      width="500px"
-      append-to-body
-      destroy-on-close
-    >
-      <el-form
-        ref="tagFormRef"
-        :model="tagForm"
-        :rules="rules"
-        label-width="80px"
-      >
+    <el-dialog :title="dialog.title" v-model="dialog.visible" width="500px" append-to-body destroy-on-close>
+      <el-form ref="tagFormRef" :model="tagForm" :rules="rules" label-width="80px">
         <el-form-item label="名称" prop="name">
-          <el-input 
-            v-model="tagForm.name" 
-            placeholder="请输入名称" 
-            clearable
-          />
+          <el-input v-model="tagForm.name" placeholder="请输入名称" clearable />
         </el-form-item>
       </el-form>
 
@@ -119,10 +74,11 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import ButtonGroup from '@/components/ButtonGroup/index.vue'
+import { getTagListApi, addTagApi, updateTagApi, deleteTagApi } from '@/api/tag/index'
 
 // 查询参数
 const queryParams = reactive({
-  pageNum: 1,
+  page: 1,
   pageSize: 10,
   name: ''
 })
@@ -159,41 +115,18 @@ const rules = reactive<FormRules>({
 })
 
 // 获取标签列表
-const getList = () => {
+const getList = async () => {
   loading.value = true
-  
-  // 模拟数据
-  setTimeout(() => {
-    tagList.value = [
-      {
-        id: 1,
-        name: 'Spring Boot',
-        createTime: '2023-01-01 12:00:00'
-      },
-      {
-        id: 2,
-        name: 'Spring Cloud',
-        createTime: '2023-01-01 12:00:00'
-      },
-      {
-        id: 3,
-        name: 'Java',
-        createTime: '2023-01-01 12:00:00'
-      },
-      {
-        id: 4,
-        name: 'Vue',
-        createTime: '2023-01-01 12:00:00'
-      },
-      {
-        id: 5,
-        name: 'MySQL',
-        createTime: '2023-01-01 12:00:00'
-      }
-    ]
-    total.value = 5
+  try {
+    const { data } = await getTagListApi(queryParams)
+    tagList.value = data.records || []
+    total.value = data.total || 0
+  } catch (error) {
+    console.error('获取标签列表失败', error)
+    ElMessage.error('获取标签列表失败')
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
 // 表格选择项变化
@@ -202,39 +135,51 @@ const handleSelectionChange = (selection: any[]) => {
 }
 
 // 批量删除
-const handleBatchDelete = () => {
+const handleBatchDelete = async () => {
   if (selectedIds.value.length === 0) return
-  
+
   ElMessageBox.confirm(`是否确认删除 ${selectedIds.value.length} 个标签?`, '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.success('批量删除成功')
-    getList()
-    selectedIds.value = []
-  }).catch(() => {})
+  }).then(async () => {
+    try {
+      await deleteTagApi(selectedIds.value.join(','))
+      ElMessage.success('批量删除成功')
+      getList()
+      selectedIds.value = []
+    } catch (error) {
+      console.error('批量删除失败', error)
+      ElMessage.error('批量删除失败')
+    }
+  }).catch(() => { })
 }
 
 // 删除
-const handleDelete = (row: any) => {
+const handleDelete = async (row: any) => {
   ElMessageBox.confirm(`是否确认删除 ${row.name} 这个标签?`, '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.success('删除成功')
-    getList()
-  }).catch(() => {})
+  }).then(async () => {
+    try {
+      await deleteTagApi(row.id.toString())
+      ElMessage.success('删除成功')
+      getList()
+    } catch (error) {
+      console.error('删除失败', error)
+      ElMessage.error('删除失败')
+    }
+  }).catch(() => { })
 }
 
-// 搜索
+// 搜索按钮操作
 const handleQuery = () => {
-  queryParams.pageNum = 1
+  queryParams.page = 1
   getList()
 }
 
-// 重置查询
+// 重置按钮操作
 const resetQuery = () => {
   if (queryFormRef.value) {
     queryFormRef.value.resetFields()
@@ -263,23 +208,24 @@ const handleUpdate = (row: any) => {
 // 提交表单
 const submitForm = async () => {
   if (!tagFormRef.value) return
-  
-  await tagFormRef.value.validate((valid) => {
+
+  await tagFormRef.value.validate(async (valid) => {
     if (valid) {
       submitLoading.value = true
-      
+
       try {
         if (dialog.type === 'add') {
-          // 模拟添加
+          await addTagApi(tagForm)
           ElMessage.success('添加成功')
         } else {
-          // 模拟修改
+          await updateTagApi(tagForm)
           ElMessage.success('修改成功')
         }
         dialog.visible = false
         getList()
       } catch (error) {
         console.error('操作失败', error)
+        ElMessage.error('操作失败')
       } finally {
         submitLoading.value = false
       }
@@ -310,7 +256,7 @@ const handleSizeChange = (val: number) => {
 
 // 分页页码改变
 const handleCurrentChange = (val: number) => {
-  queryParams.pageNum = val
+  queryParams.page = val
   getList()
 }
 
@@ -337,4 +283,4 @@ onMounted(() => {
   margin-top: 20px;
   text-align: center;
 }
-</style> 
+</style>

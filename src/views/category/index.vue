@@ -48,7 +48,6 @@
         <el-table-column type="selection"  width="55" align="center" />
         <el-table-column label="名称" align="center" prop="name" show-overflow-tooltip />
         <el-table-column label="描述" align="center" prop="description" show-overflow-tooltip />
-        <el-table-column label="创建时间" align="center" prop="createTime" width="180" />
         <el-table-column label="操作" align="center" width="200" fixed="right">
           <template #default="scope">
             <el-button
@@ -70,7 +69,7 @@
       <!-- 分页组件 -->
       <div class="pagination-container">
         <el-pagination
-          v-model:current-page="queryParams.pageNum"
+          v-model:current-page="queryParams.page"
           v-model:page-size="queryParams.pageSize"
           :page-sizes="[10, 20, 30, 50]"
           :total="total"
@@ -129,10 +128,11 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import ButtonGroup from '@/components/ButtonGroup/index.vue'
+import { getCategoryListApi, addCategoryApi, updateCategoryApi, deleteCategoryApi } from '@/api/category/index'
 
 // 查询参数
 const queryParams = reactive({
-  pageNum: 1,
+  page: 1,
   pageSize: 10,
   name: ''
 })
@@ -173,46 +173,18 @@ const rules = reactive<FormRules>({
 })
 
 // 获取分类列表
-const getList = () => {
+const getList = async () => {
   loading.value = true
-  
-  // 模拟数据
-  setTimeout(() => {
-    tableData.value = [
-      {
-        id: 1,
-        name: '后端开发',
-        description: '记录后端开发相关技术',
-        createTime: '2023-01-01 12:00:00'
-      },
-      {
-        id: 2,
-        name: '前端开发',
-        description: '记录前端开发相关技术',
-        createTime: '2023-01-01 12:00:00'
-      },
-      {
-        id: 3,
-        name: '数据库',
-        description: '记录数据库相关技术',
-        createTime: '2023-01-01 12:00:00'
-      },
-      {
-        id: 4,
-        name: '生活随笔',
-        description: '记录生活中的美好',
-        createTime: '2023-01-01 12:00:00'
-      },
-      {
-        id: 5,
-        name: '博客文章',
-        description: '写在博客里的文章',
-        createTime: '2023-01-01 12:00:00'
-      }
-    ]
-    total.value = 5
+  try {
+    const { data } = await getCategoryListApi(queryParams)
+    tableData.value = data.records || []
+    total.value = data.total || 0
+  } catch (error) {
+    console.error('获取分类列表失败', error)
+    ElMessage.error('获取分类列表失败')
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
 // 表格选择项变化
@@ -221,35 +193,47 @@ const handleSelectionChange = (selection: any[]) => {
 }
 
 // 批量删除
-const handleBatchDelete = () => {
+const handleBatchDelete = async () => {
   if (selectedIds.value.length === 0) return
   
   ElMessageBox.confirm(`是否确认删除 ${selectedIds.value.length} 个分类?`, '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.success('批量删除成功')
-    getList()
-    selectedIds.value = []
+  }).then(async () => {
+    try {
+      await deleteCategoryApi(selectedIds.value.join(','))
+      ElMessage.success('批量删除成功')
+      getList()
+      selectedIds.value = []
+    } catch (error) {
+      console.error('批量删除失败', error)
+      ElMessage.error('批量删除失败')
+    }
   }).catch(() => {})
 }
 
 // 删除
-const handleDelete = (row: any) => {
+const handleDelete = async (row: any) => {
   ElMessageBox.confirm(`是否确认删除 ${row.name} 这个分类?`, '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.success('删除成功')
-    getList()
+  }).then(async () => {
+    try {
+      await deleteCategoryApi(row.id.toString())
+      ElMessage.success('删除成功')
+      getList()
+    } catch (error) {
+      console.error('删除失败', error)
+      ElMessage.error('删除失败')
+    }
   }).catch(() => {})
 }
 
 // 搜索
 const handleQuery = () => {
-  queryParams.pageNum = 1
+  queryParams.page = 1
   getList()
 }
 
@@ -283,22 +267,23 @@ const handleUpdate = (row: any) => {
 const submitForm = async () => {
   if (!formRef.value) return
   
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
       submitLoading.value = true
       
       try {
         if (dialog.type === 'add') {
-          // 模拟添加
+          await addCategoryApi(form)
           ElMessage.success('添加成功')
         } else {
-          // 模拟修改
+          await updateCategoryApi(form)
           ElMessage.success('修改成功')
         }
         dialog.visible = false
         getList()
       } catch (error) {
         console.error('操作失败', error)
+        ElMessage.error('操作失败')
       } finally {
         submitLoading.value = false
       }
@@ -330,7 +315,7 @@ const handleSizeChange = (val: number) => {
 
 // 分页页码改变
 const handleCurrentChange = (val: number) => {
-  queryParams.pageNum = val
+  queryParams.page = val
   getList()
 }
 

@@ -5,7 +5,7 @@
         <div class="copyright">
           Copyright © {{ currentYear }} 
           <a :href="settings.repository" target="_blank" rel="noopener noreferrer">
-            {{ title }}
+            Diamond-Blog
           </a>
           <span class="version">v1.0.0</span>
         </div>

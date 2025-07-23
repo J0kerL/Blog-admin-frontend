@@ -18,7 +18,7 @@ export interface SettingsState {
 
 export const useSettingsStore = defineStore({
   id: 'settings',
-  
+
   state: (): SettingsState => ({
     theme: 'light',
     themeColor: '#409EFF',
@@ -48,7 +48,7 @@ export const useSettingsStore = defineStore({
           document.documentElement.style.setProperty(key, value)
         })
       }
-      
+
       // 添加字体大小设置
       if (settings.fontSize) {
         document.documentElement.setAttribute('data-size', settings.fontSize)
@@ -124,7 +124,7 @@ export const useSettingsStore = defineStore({
       Object.assign(this, settings)
       // 保存到 sessionStorage
       sessionStorage.setItem('settings', JSON.stringify(this.$state))
-      
+
       // 应用灰色模式
       if ('greyMode' in settings) {
         if (settings.greyMode) {
@@ -133,7 +133,7 @@ export const useSettingsStore = defineStore({
           document.documentElement.classList.remove('grey-mode')
         }
       }
-      
+
       // 初始化深色模式
       if (settings.theme === 'dark') {
         document.documentElement.classList.add('dark')
@@ -153,9 +153,37 @@ export const useSettingsStore = defineStore({
       }
     },
 
-    // 重置设置
+    // 将当前设置设为默认设置
+    setCurrentAsDefault() {
+      const currentSettings = { ...this.$state }
+      // 将当前设置保存到localStorage作为默认设置
+      localStorage.setItem('defaultSettings', JSON.stringify(currentSettings))
+    },
+
+    // 重置设置（使用保存的默认设置）
     resetSettings() {
-      const defaultSettings: SettingsState = {
+      const savedDefaults = localStorage.getItem('defaultSettings')
+      let defaultSettings: SettingsState
+
+      if (savedDefaults) {
+        try {
+          defaultSettings = JSON.parse(savedDefaults)
+        } catch (error) {
+          console.error('Failed to parse saved default settings:', error)
+          // 如果解析失败，使用内置默认设置
+          defaultSettings = this.getBuiltInDefaults()
+        }
+      } else {
+        // 如果没有保存的默认设置，使用内置默认设置
+        defaultSettings = this.getBuiltInDefaults()
+      }
+
+      this.saveSettings(defaultSettings)
+    },
+
+    // 获取内置默认设置
+    getBuiltInDefaults(): SettingsState {
+      return {
         theme: 'light' as const,
         themeColor: '#409EFF',
         showTags: true,
@@ -167,10 +195,9 @@ export const useSettingsStore = defineStore({
         dynamicTitle: false,
         greyMode: false,
         showFooter: true,
-        title: 'Neat Admin',
+        title: 'Diamond博客管理系统',
         sidebarStyle: 'dark'
       }
-      this.saveSettings(defaultSettings)
     },
 
     // 修改初始化方法

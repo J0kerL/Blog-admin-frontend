@@ -4,6 +4,7 @@
       v-if="settingsStore.showLogo"
       class="logo-container"
       :class="{ dark: settingsStore.theme === 'dark' }"
+      @click="handleLogoClick"
     >
       <template v-if="isCollapse">
         <Logo :size="32" class="logo-icon" :color="settingsStore.themeColor" />
@@ -144,6 +145,13 @@ const handleSelect = (index: string) => {
     router.push(index);
   }
 };
+
+// 处理logo点击事件，跳转到仪表盘
+const handleLogoClick = () => {
+  if (route.path !== '/dashboard') {
+    router.push('/dashboard');
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -158,9 +166,15 @@ const handleSelect = (index: string) => {
     display: flex;
     align-items: center;
     padding: 0 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
     background-color: v-bind(
       'settingsStore.theme === "dark" ? "#1d1e1f" : (settingsStore.sidebarStyle === "light" ? "#ffffff" : "#304156")'
     );
+
+    &:hover {
+      background-color: v-bind("`${settingsStore.themeColor}1a`");
+    }
 
     .logo-icon {
       flex-shrink: 0;
@@ -172,9 +186,18 @@ const handleSelect = (index: string) => {
       /*margin-left: 12px;*/
       font-weight: 600;
       white-space: nowrap;
+      transition: color 0.3s ease;
 
       &.light {
         color: #303133;
+      }
+    }
+
+    &:hover .logo-text {
+      color: v-bind("settingsStore.themeColor");
+      
+      &.light {
+        color: v-bind("settingsStore.themeColor");
       }
     }
   }

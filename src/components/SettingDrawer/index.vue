@@ -152,7 +152,8 @@
       </div>
 
       <div class="drawer-footer">
-        <el-button @click="resetSettings">恢复默认</el-button>
+        <el-button @click="resetToDefault">恢复默认</el-button>
+        <el-button type="primary" @click="setCurrentAsDefault">设为默认</el-button>
       </div>
     </div>
   </el-drawer>
@@ -232,17 +233,26 @@ const handleThemeChange = (color: string | null) => {
   }
 };
 
-// 重置设置
-const resetSettings = () => {
+// 将当前设置设为默认设置
+const setCurrentAsDefault = () => {
+  settingsStore.setCurrentAsDefault();
+  ElMessage.success("已将当前设置设为默认设置");
+};
+
+// 恢复到默认设置
+const resetToDefault = () => {
   settingsStore.resetSettings();
+  // 更新临时设置状态
   tempSettings.value = {
-    theme: settingsStore.theme,
+    theme: settingsStore.theme as "light" | "dark",
     themeColor: settingsStore.themeColor,
     showLogo: settingsStore.showLogo,
     showTags: settingsStore.showTags,
+    watermark: settingsStore.watermark,
     greyMode: settingsStore.greyMode,
     fontSize: settingsStore.fontSize,
     pageAnimation: settingsStore.pageAnimation,
+    tagsStyle: settingsStore.tagsStyle,
     dynamicTitle: settingsStore.dynamicTitle,
     showFooter: settingsStore.showFooter,
     sidebarStyle: settingsStore.sidebarStyle,
@@ -369,47 +379,6 @@ const tagsStyles = [
   margin: 16px 0;
 }
 
-.style-item {
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.3s;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-
-  &.active .style-preview {
-    border-color: v-bind("settingsStore.themeColor");
-  }
-}
-
-.style-preview {
-  padding: 8px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  background: var(--el-fill-color-light);
-  margin-bottom: 8px;
-}
-
-.tag {
-  display: inline-block;
-  padding: 2px 6px;
-  font-size: 12px;
-  margin: 2px;
-  border-radius: 4px;
-  background: var(--el-bg-color);
-
-  &.active {
-    background: v-bind("settingsStore.themeColor");
-    color: white;
-  }
-}
-
-.style-name {
-  font-size: 13px;
-  color: var(--el-text-color-regular);
-}
-
 .system-style {
   display: flex;
   align-items: center;
@@ -421,7 +390,6 @@ const tagsStyles = [
   position: relative;
   box-shadow: 0 1px 2.5px #0000002e;
   cursor: pointer;
-
 
   &::before {
     content: "";
@@ -453,8 +421,8 @@ const tagsStyles = [
     border-radius: 50%;
     background-color: v-bind("settingsStore.themeColor");
   }
-
 }
+
 .light::before {
   background-color: #fff;
 }
