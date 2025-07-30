@@ -38,6 +38,17 @@
       <!-- 数据表格 -->
       <el-table v-loading="loading" :data="tableData" style="width: 100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="封面" align="center" width="150">
+          <template #default="scope">
+            <el-image
+              v-if="scope.row.cover"
+              :src="scope.row.cover"
+              style="width: 120px; height: 80px; border-radius: 4px;"
+              fit="contain"
+            />
+            <span v-else>无</span>
+          </template>
+        </el-table-column>
         <el-table-column label="标题" align="center" prop="title" width="200" show-overflow-tooltip>
           <template #default="scope">
             <span style="color: var(--el-color-primary);">{{ scope.row.title }}</span>
@@ -89,6 +100,20 @@
           <el-input v-model="form.content" type="textarea" :rows="10" placeholder="请输入文章内容" />
         </el-form-item>
 
+        <el-form-item label="文章封面" prop="cover">
+          <el-upload
+            class="cover-uploader"
+            :action="`${uploadUrl}/file/upload`"
+            :show-file-list="false"
+            :on-success="handleCoverSuccess"
+            :before-upload="beforeCoverUpload"
+            :headers="uploadHeaders"
+          >
+            <img v-if="form.cover" :src="form.cover" class="cover" />
+            <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
+          </el-upload>
+        </el-form-item>
+
         <el-form-item label="分类" prop="categoryId">
           <el-select v-model="form.categoryId" placeholder="请选择分类">
             <el-option v-for="item in categoryOptions" :key="item.id" :label="item.name" :value="item.id" />
@@ -128,6 +153,37 @@ import ButtonGroup from '@/components/ButtonGroup/index.vue'
 import { getArticleListApi, addArticleApi, updateArticleApi, deleteArticleApi } from '@/api/article/index'
 import { getAllTagsApi } from '@/api/tag/index'
 import { getToken } from '@/utils/auth'
+import { Plus } from '@element-plus/icons-vue'
+import type { UploadProps } from 'element-plus'
+
+const uploadUrl = import.meta.env.VITE_APP_BASE_API
+const uploadHeaders = reactive({
+  Authorization: getToken() || ''
+})
+
+const handleCoverSuccess: UploadProps['onSuccess'] = (
+  response,
+  uploadFile
+) => {
+  if (response.code === 200) {
+    form.cover = response.data
+    ElMessage.success('封面上传成功')
+  } else {
+    ElMessage.error(response.msg || '封面上传失败')
+  }
+}
+
+const beforeCoverUpload: UploadProps['beforeUpload'] = (rawFile) => {
+  const isJpgOrPng = rawFile.type === 'image/jpeg' || rawFile.type === 'image/png'
+  if (!isJpgOrPng) {
+    ElMessage.error('封面图片只支持 JPG/PNG 格式!')
+    return false
+  } else if (rawFile.size / 1024 / 1024 > 2) {
+    ElMessage.error('封面图片大小不能超过 2MB!')
+    return false
+  }
+  return true
+}
 
 // 查询参数
 const queryParams = reactive({
@@ -168,6 +224,7 @@ const form = reactive({
   id: undefined,
   title: '',
   content: '',
+  cover: '',
   categoryId: '',
   tagIds: [],
   authorId: 1,
@@ -318,6 +375,7 @@ const handleUpdate = (row: any) => {
     id: row.id,
     title: row.title,
     content: row.content,
+    cover: row.cover,
     categoryId: row.categoryId,
     status: row.status
   })
@@ -406,6 +464,7 @@ const resetForm = () => {
   form.id = undefined
   form.title = ''
   form.content = ''
+  form.cover = ''
   form.categoryId = ''
   form.tagIds = []
   form.authorId = 1
@@ -464,5 +523,32 @@ onMounted(() => {
   color: #909399;
   margin-top: 4px;
   line-height: 1.4;
+}
+
+.cover-uploader .cover {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+
+.cover-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.cover-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.cover-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
 }
 </style>
