@@ -163,4 +163,24 @@ export function changePasswordApi(data: any) {
   })
 }
 
+// 根据账号（用户名或邮箱）获取用户信息
+export function getUserByAccountApi(account: string) {
+  return request({
+    url: `/user/${account}`,
+    method: 'get'
+  })
+}
+
+// 忘记密码 - 重置用户密码
+export function resetPasswordByAccountApi(account: string, newPassword: string) {
+  return request({
+    url: '/user/resetPassword',
+    method: 'put',
+    data: {
+      account,
+      newPassword
+    }
+  })
+}
+
 

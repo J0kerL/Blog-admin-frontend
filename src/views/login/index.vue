@@ -23,44 +23,20 @@
 
 
         <!-- 登录表单内容 -->
-        <el-form
-            v-if="!isForgetPassword"
-            ref="loginFormRef"
-            :model="loginForm"
-            :rules="rules"
-            @keyup.enter="handleLogin"
-        >
+        <el-form v-if="!isForgetPassword" ref="loginFormRef" :model="loginForm" :rules="rules"
+          @keyup.enter="handleLogin">
           <el-form-item prop="username">
-            <el-input
-                v-model="loginForm.username"
-                placeholder="请输入用户名或邮箱"
-                prefix-icon="User"
-            />
+            <el-input v-model="loginForm.username" placeholder="请输入用户名或邮箱" prefix-icon="User" />
           </el-form-item>
           <el-form-item prop="password">
-            <el-input
-                v-model="loginForm.password"
-                type="password"
-                placeholder="请输入密码"
-                prefix-icon="Lock"
-                show-password
-            />
+            <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock"
+              show-password />
           </el-form-item>
 
           <el-form-item prop="captchaCode">
             <div class="captcha-wrapper">
-              <el-input
-                  v-model="loginForm.captchaCode"
-                  placeholder="请输入验证码"
-                  prefix-icon="Picture"
-              />
-              <img
-                  :src="captchaImage"
-                  alt="验证码"
-                  class="captcha-image"
-                  @click="refreshCaptcha"
-                  title="点击刷新验证码"
-              />
+              <el-input v-model="loginForm.captchaCode" placeholder="请输入验证码" prefix-icon="Picture" />
+              <img :src="captchaImage" alt="验证码" class="captcha-image" @click="refreshCaptcha" title="点击刷新验证码" />
             </div>
           </el-form-item>
 
@@ -69,69 +45,31 @@
             <a href="javascript:void(0)" class="forget-password" @click="toggleForgetPassword">忘记密码？</a>
           </div>
 
-          <el-button
-              :loading="loading"
-              type="primary"
-              class="login-button"
-              @click="handleLogin"
-          >
+          <el-button :loading="loading" type="primary" class="login-button" @click="handleLogin">
             {{ loading ? "登录中..." : "登录" }}
           </el-button>
         </el-form>
-        
+
         <!-- 忘记密码表单 -->
-        <el-form
-            v-else
-            ref="forgetPasswordFormRef"
-            :model="forgetPasswordForm"
-            :rules="forgetPasswordRules"
-            @keyup.enter="handleForgetPassword"
-        >
+        <el-form v-else ref="forgetPasswordFormRef" :model="forgetPasswordForm" :rules="forgetPasswordRules"
+          @keyup.enter="handleForgetPassword">
           <el-form-item prop="username">
-            <el-input
-                v-model="forgetPasswordForm.username"
-                placeholder="请输入用户名或邮箱"
-                prefix-icon="User"
-            />
-          </el-form-item>
-          <el-form-item prop="oldPassword">
-            <el-input
-                v-model="forgetPasswordForm.oldPassword"
-                type="password"
-                placeholder="请输入旧密码"
-                prefix-icon="Lock"
-                show-password
-            />
+            <el-input v-model="forgetPasswordForm.username" placeholder="请输入用户名或邮箱" prefix-icon="User" />
           </el-form-item>
           <el-form-item prop="newPassword">
-            <el-input
-                v-model="forgetPasswordForm.newPassword"
-                type="password"
-                placeholder="请输入新密码"
-                prefix-icon="Lock"
-                show-password
-            />
+            <el-input v-model="forgetPasswordForm.newPassword" type="password" placeholder="请输入新密码" prefix-icon="Lock"
+              show-password />
           </el-form-item>
           <el-form-item prop="confirmPassword">
-            <el-input
-                v-model="forgetPasswordForm.confirmPassword"
-                type="password"
-                placeholder="请确认新密码"
-                prefix-icon="Lock"
-                show-password
-            />
+            <el-input v-model="forgetPasswordForm.confirmPassword" type="password" placeholder="请确认新密码"
+              prefix-icon="Lock" show-password />
           </el-form-item>
-          
+
           <div class="login-options">
             <a href="javascript:void(0)" class="back-to-login" @click="toggleForgetPassword">返回登录</a>
           </div>
-          
-          <el-button
-              :loading="resetLoading"
-              type="primary"
-              class="login-button"
-              @click="handleForgetPassword"
-          >
+
+          <el-button :loading="resetLoading" type="primary" class="login-button" @click="handleForgetPassword">
             {{ resetLoading ? "提交中..." : "重置密码" }}
           </el-button>
         </el-form>
@@ -143,11 +81,12 @@
 
 <script setup lang="ts">
 import router from "@/router";
-import type {FormInstance} from "element-plus";
-import {ElMessage} from "element-plus";
-import {useUserStore} from "@/store/modules/user";
-import {useSettingsStore} from "@/store/modules/settings";
+import type { FormInstance } from "element-plus";
+import { ElMessage } from "element-plus";
+import { useUserStore } from "@/store/modules/user";
+import { useSettingsStore } from "@/store/modules/settings";
 import settings from "@/config/settings";
+import { getUserByAccountApi, updateUserApi } from "@/api/system/user";
 
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
@@ -223,12 +162,12 @@ const refreshCaptcha = () => {
 
 const rules = {
   username: [
-    {required: true, message: "请输入用户名或邮箱", trigger: "blur"},
-    {min: 4, max: 20, message: "长度在 4 到 20 个字符", trigger: "blur"},
+    { required: true, message: "请输入用户名或邮箱", trigger: "blur" },
+    { min: 4, max: 20, message: "长度在 4 到 20 个字符", trigger: "blur" },
   ],
   password: [
-    {required: true, message: "请输入密码", trigger: "blur"},
-    {min: 4, max: 20, message: "长度在 4 到 20 个字符", trigger: "blur"},
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 4, max: 20, message: "长度在 4 到 20 个字符", trigger: "blur" },
   ],
   // 验证码不再是必填项
   captchaCode: []
@@ -247,28 +186,28 @@ const login = () => {
     username: loginForm.username,
     password: loginForm.password
   };
-  
+
   userStore
-      .login(loginData)
-      .then(() => {
-        // 登录成功后直接跳转到首页，不需要手动获取用户信息
-        // 导航守卫会自动处理用户信息的获取和路由加载
-        ElMessage.success("登录成功");
-        router.push("/");
-      })
-      .catch((error) => {
-        ElMessage.error("登录失败，请检查用户名和密码");
-        refreshCaptcha(); // 登录失败刷新验证码
-      })
-      .finally(() => {
-        loading.value = false;
-      });
+    .login(loginData)
+    .then(() => {
+      // 登录成功后直接跳转到首页，不需要手动获取用户信息
+      // 导航守卫会自动处理用户信息的获取和路由加载
+      ElMessage.success("登录成功");
+      router.push("/");
+    })
+    .catch((error) => {
+      ElMessage.error("登录失败，请检查用户名和密码");
+      refreshCaptcha(); // 登录失败刷新验证码
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 
 const handleLogin = async () => {
   loginFormRef.value?.validate((flag) => {
-    if(flag) {
+    if (flag) {
       login();
     }
   });
@@ -292,7 +231,6 @@ const forgetPasswordFormRef = ref<FormInstance>();
 // 忘记密码表单数据
 const forgetPasswordForm = reactive({
   username: "",
-  oldPassword: "",
   newPassword: "",
   confirmPassword: ""
 });
@@ -303,13 +241,9 @@ const forgetPasswordRules = {
     { required: true, message: "请输入用户名或邮箱", trigger: "blur" },
     { min: 4, max: 20, message: "长度在 4 到 20 个字符", trigger: "blur" },
   ],
-  oldPassword: [
-    { required: true, message: "请输入旧密码", trigger: "blur" },
-    { min: 4, max: 20, message: "长度在 4 到 20 个字符", trigger: "blur" },
-  ],
   newPassword: [
     { required: true, message: "请输入新密码", trigger: "blur" },
-    { min: 6, max: 20, message: "长度在 6 到 20 个字符", trigger: "blur" },
+    { min: 4, max: 20, message: "长度在 4 到 20 个字符", trigger: "blur" },
   ],
   confirmPassword: [
     { required: true, message: "请确认新密码", trigger: "blur" },
@@ -333,7 +267,6 @@ const toggleForgetPassword = () => {
   if (isForgetPassword.value) {
     Object.assign(forgetPasswordForm, {
       username: "",
-      oldPassword: "",
       newPassword: "",
       confirmPassword: ""
     });
@@ -349,19 +282,38 @@ const toggleForgetPassword = () => {
 };
 
 // 处理忘记密码
-const handleForgetPassword = () => {
-  forgetPasswordFormRef.value?.validate((valid) => {
-    if (valid) {
-      resetLoading.value = true;
-      // 这里应该调用重置密码的API
-      // 示例代码，实际需要根据后端API调整
-      setTimeout(() => {
-        ElMessage.success("密码重置成功，请重新登录");
-        resetLoading.value = false;
-        toggleForgetPassword();
-      }, 2000);
+const handleForgetPassword = async () => {
+  if (!forgetPasswordFormRef.value) return;
+
+  const valid = await forgetPasswordFormRef.value.validate().catch(() => false);
+  if (!valid) return;
+
+  resetLoading.value = true;
+
+  try {
+    // 1. 先验证用户是否存在
+    const userResponse = await getUserByAccountApi(forgetPasswordForm.username);
+
+    if (!userResponse.data) {
+      ElMessage.error("用户不存在，请检查用户名或邮箱");
+      return;
     }
-  });
+
+    // 2. 使用用户更新API来重置密码
+    await updateUserApi({
+      id: userResponse.data.id,
+      password: forgetPasswordForm.newPassword
+    });
+
+    ElMessage.success("密码重置成功，请重新登录");
+    toggleForgetPassword();
+
+  } catch (error: any) {
+    console.error('重置密码失败:', error);
+    ElMessage.error(error.message || "密码重置失败，请稍后重试");
+  } finally {
+    resetLoading.value = false;
+  }
 };
 </script>
 
@@ -411,11 +363,9 @@ const handleForgetPassword = () => {
         content: "";
         position: absolute;
         inset: -15px;
-        background: radial-gradient(
-                circle,
-                rgba(33, 150, 243, 0.4),
-                transparent 70%
-        );
+        background: radial-gradient(circle,
+            rgba(33, 150, 243, 0.4),
+            transparent 70%);
         filter: blur(15px);
         animation: glowPulse 4s ease-in-out infinite;
       }
@@ -531,10 +481,12 @@ const handleForgetPassword = () => {
 
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-20px);
   }
@@ -544,6 +496,7 @@ const handleForgetPassword = () => {
   0% {
     transform: rotate(0);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -571,7 +524,7 @@ const handleForgetPassword = () => {
       color: var(--el-color-primary);
     }
   }
-  
+
   // 添加返回登录按钮样式，与忘记密码按钮一致
   .back-to-login {
     color: var(--el-text-color-regular);
@@ -622,6 +575,4 @@ const handleForgetPassword = () => {
     }
   }
 }
-
-
 </style>
