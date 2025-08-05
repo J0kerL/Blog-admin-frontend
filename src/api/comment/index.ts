@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getCommentListApi(params: any) {
   return request({
-    url: '/admin/comment/page',
+    url: '/comment/page',
     method: 'get',
     params
   })
@@ -16,7 +16,7 @@ export function getCommentListApi(params: any) {
  */
 export function deleteCommentApi(ids: number[]) {
   return request({
-    url: '/admin/comment/batch',
+    url: '/comment/batch',
     method: 'delete',
     data: ids
   })
