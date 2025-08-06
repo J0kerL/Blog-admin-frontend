@@ -471,10 +471,10 @@ const submitResetPwd = async () => {
     if (valid) {
       submitLoading.value = true
       try {
-        // 使用更新用户接口来重置密码
-        await updateUser({
-          id: resetPwdForm.userId,
-          password: resetPwdForm.password
+        // 使用专门的重置密码接口
+        await resetUserPwd({
+          userId: resetPwdForm.userId,
+          newPassword: resetPwdForm.password
         })
         ElMessage.success('密码重置成功')
         resetPwdDialog.visible = false

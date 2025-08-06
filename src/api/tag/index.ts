@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getTagListApi(params: any) {
   return request({
-    url: '/admin/tag/page',
+    url: '/tag/page',
     method: 'get',
     params
   })
@@ -16,7 +16,7 @@ export function getTagListApi(params: any) {
  */
 export function addTagApi(data: any) {
   return request({
-    url: '/admin/tag',
+    url: '/tag/add',
     method: 'post',
     data
   })
@@ -27,7 +27,7 @@ export function addTagApi(data: any) {
  */
 export function updateTagApi(data: any) {
   return request({
-    url: '/admin/tag',
+    url: '/tag/update',
     method: 'put',
     data
   })
@@ -38,7 +38,7 @@ export function updateTagApi(data: any) {
  */
 export function deleteTagApi(ids: string) {
   return request({
-    url: '/admin/tag',
+    url: '/tag/delete',
     method: 'delete',
     params: { ids }
   })
@@ -49,7 +49,7 @@ export function deleteTagApi(ids: string) {
  */
 export function getAllTagsApi() {
   return request({
-    url: '/admin/tag/list',
+    url: '/tag/list',
     method: 'get'
   })
 }

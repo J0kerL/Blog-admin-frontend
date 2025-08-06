@@ -359,9 +359,9 @@ const submitPasswordForm = async () => {
     if (valid) {
       try {
         await changePasswordApi({
-          id: userInfo.value.id,
           oldPassword: passwordForm.oldPassword,
           newPassword: passwordForm.newPassword,
+          confirmPassword: passwordForm.confirmPassword,
         });
         ElMessage.success("密码修改成功");
         resetPasswordForm();

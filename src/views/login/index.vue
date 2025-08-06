@@ -86,7 +86,7 @@ import { ElMessage } from "element-plus";
 import { useUserStore } from "@/store/modules/user";
 import { useSettingsStore } from "@/store/modules/settings";
 import settings from "@/config/settings";
-import { getUserByAccountApi, updateUserApi } from "@/api/system/user";
+import { forgetPasswordApi } from "@/api/system/user";
 
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
@@ -291,18 +291,11 @@ const handleForgetPassword = async () => {
   resetLoading.value = true;
 
   try {
-    // 1. 先验证用户是否存在
-    const userResponse = await getUserByAccountApi(forgetPasswordForm.username);
-
-    if (!userResponse.data) {
-      ElMessage.error("用户不存在，请检查用户名或邮箱");
-      return;
-    }
-
-    // 2. 使用用户更新API来重置密码
-    await updateUserApi({
-      id: userResponse.data.id,
-      password: forgetPasswordForm.newPassword
+    // 调用专门的忘记密码接口
+    await forgetPasswordApi({
+      account: forgetPasswordForm.username,
+      newPassword: forgetPasswordForm.newPassword,
+      confirmPassword: forgetPasswordForm.confirmPassword
     });
 
     ElMessage.success("密码重置成功，请重新登录");

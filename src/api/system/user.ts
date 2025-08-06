@@ -157,7 +157,7 @@ export function forceLogoutApi(token: string) {
 // 修改用户密码
 export function changePasswordApi(data: any) {
   return request({
-    url: '/user/changePassword',
+    url: '/user/change-password',
     method: 'put',
     data: data
   })
@@ -180,6 +180,15 @@ export function resetPasswordByAccountApi(account: string, newPassword: string) 
       account,
       newPassword
     }
+  })
+}
+
+// 忘记密码 - 专门的忘记密码接口
+export function forgetPasswordApi(data: any) {
+  return request({
+    url: '/user/forgetPassword',
+    method: 'put',
+    data: data
   })
 }
 
