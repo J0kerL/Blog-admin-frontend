@@ -147,8 +147,9 @@
         </el-form-item>
 
         <el-form-item label="文章内容" prop="content">
-          <el-input v-model="form.content" type="textarea" :rows="10" placeholder="请输入文章内容" />
-          <div class="form-tip">格式最优为Markdown格式</div>
+          <MdEditor v-model="form.content" :height="400" :preview="true" :toolbars="toolbars"
+            :placeholder="'请输入文章内容，支持Markdown语法'" @on-upload-img="onUploadImg" />
+          <div class="form-tip">支持Markdown语法，左侧编辑，右侧实时预览</div>
         </el-form-item>
 
         <el-form-item label="文章封面" prop="cover">
@@ -203,6 +204,8 @@ import { getToken } from '@/utils/auth'
 import { Plus } from '@element-plus/icons-vue'
 import type { UploadProps } from 'element-plus'
 import { marked } from 'marked'
+import { MdEditor } from 'md-editor-v3'
+import 'md-editor-v3/lib/style.css'
 
 const uploadUrl = import.meta.env.VITE_APP_BASE_API
 const uploadHeaders = reactive({
@@ -552,6 +555,74 @@ const renderMarkdown = (content: string): string => {
   }
 }
 
+// Markdown 编辑器工具栏配置
+const toolbars = [
+  'bold',
+  'underline',
+  'italic',
+  '-',
+  'title',
+  'strikeThrough',
+  'sub',
+  'sup',
+  'quote',
+  'unorderedList',
+  'orderedList',
+  'task',
+  '-',
+  'codeRow',
+  'code',
+  'link',
+  'image',
+  'table',
+  'mermaid',
+  'katex',
+  '-',
+  'revoke',
+  'next',
+  'save',
+  '=',
+  'pageFullscreen',
+  'fullscreen',
+  'preview',
+  'previewOnly',
+  'htmlPreview',
+  'catalog'
+]
+
+// Markdown 编辑器图片上传处理
+const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
+  const uploadPromises = files.map(async (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch(`${uploadUrl}/file/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': getToken() || ''
+        },
+        body: formData
+      })
+
+      const result = await response.json()
+      if (result.code === 200) {
+        return result.data
+      } else {
+        ElMessage.error(result.msg || '图片上传失败')
+        return ''
+      }
+    } catch (error) {
+      console.error('图片上传失败:', error)
+      ElMessage.error('图片上传失败')
+      return ''
+    }
+  })
+
+  const urls = await Promise.all(uploadPromises)
+  callback(urls.filter(url => url !== ''))
+}
+
 // 获取标签选项
 const getTagOptions = async () => {
   try {
@@ -598,6 +669,8 @@ onMounted(() => {
   width: 178px;
   height: 178px;
   display: block;
+  border-radius: 6px;
+  object-fit: cover;
 }
 
 .cover-uploader .el-upload {
