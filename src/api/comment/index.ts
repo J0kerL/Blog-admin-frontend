@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getCommentListApi(params: any) {
   return request({
-    url: '/comment/page',
+    url: '/comment/admin/page',
     method: 'get',
     params
   })
